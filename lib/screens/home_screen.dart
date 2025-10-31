@@ -1,0 +1,417 @@
+// lib/screens/home_screen.dart
+
+import 'package:bookapp/models/book_model.dart';
+import 'package:bookapp/providers/book_provider.dart';
+import 'package:bookapp/providers/user_provider.dart';
+import 'package:bookapp/screens/detail_book_screen.dart';
+import 'package:bookapp/screens/profile_screen.dart';
+import 'package:bookapp/services/google_books_service.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final GoogleBooksService _booksService = GoogleBooksService();
+  Future<List<Book>>? _popularBooksFuture;
+  Future<List<Book>>? _newestBooksFuture;
+  final TextEditingController _searchController = TextEditingController();
+  Future<List<Book>>? _searchResultsFuture;
+  bool _isSearching = false;
+  bool _isLoadingDetail = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDefaultBooks();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _fetchDefaultBooks() {
+    setState(() {
+      _popularBooksFuture = _booksService.fetchPopularBooks();
+      _newestBooksFuture = _booksService.fetchNewestBooks();
+      _searchResultsFuture = null;
+      _isSearching = false;
+    });
+  }
+
+  void _performSearch(String query) {
+    if (query.trim().isEmpty) {
+      _fetchDefaultBooks();
+      return;
+    }
+    setState(() {
+      _searchResultsFuture = _booksService.searchBooks(query.trim());
+      _isSearching = true;
+    });
+  }
+
+  Future<void> _navigateToDetail(String bookId) async {
+    if (_isLoadingDetail) return;
+    setState(() { _isLoadingDetail = true; });
+
+    try {
+      final Book? bookDetail = await _booksService.fetchBookById(bookId);
+      if (!mounted) return;
+      if (bookDetail != null) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DetailBookScreen(book: bookDetail)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Detail buku tidak ditemukan.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat detail buku.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+         setState(() { _isLoadingDetail = false; });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bookProvider = Provider.of<BookProvider>(context);
+    return Scaffold(
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 90.0),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(context),
+                    const SizedBox(height: 24),
+                    _buildSearchBar(),
+                    const SizedBox(height: 24),
+                    if (_isSearching)
+                      _buildSearchResultsSection(bookProvider)
+                    else
+                      _buildDefaultSections(bookProvider),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_isLoadingDetail)
+             Container(
+               color: Colors.black.withOpacity(0.5),
+               child: const Center(
+                 child: CircularProgressIndicator(color: Colors.white),
+               ),
+             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Hi, ${userProvider.userName}!', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen())),
+            child: CircleAvatar(
+              key: ValueKey(userProvider.imagePath ?? DateTime.now().toString()),
+              radius: 24,
+              backgroundImage: userProvider.profileImage,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Search a book title...',
+          prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+          suffixIcon: _isSearching
+              ? IconButton(
+                  icon: Icon(Icons.clear, color: Colors.grey[600]),
+                  onPressed: () {
+                    _searchController.clear();
+                    _fetchDefaultBooks();
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: Colors.grey[200],
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        ),
+        onSubmitted: (value) => _performSearch(value),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _buildDefaultSections(BookProvider bookProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Popular Books'),
+        const SizedBox(height: 16),
+        _buildHorizontalBookList(_popularBooksFuture, bookProvider),
+        const SizedBox(height: 24),
+        _buildSectionTitle('Newest Books'),
+        const SizedBox(height: 16),
+        _buildVerticalBookList(_newestBooksFuture, bookProvider),
+      ],
+    );
+  }
+
+  Widget _buildSearchResultsSection(BookProvider bookProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('Search Results for "${_searchController.text}"'),
+        const SizedBox(height: 16),
+        _buildSearchResultsList(_searchResultsFuture, bookProvider),
+      ],
+    );
+  }
+
+  Widget _buildHorizontalBookList(Future<List<Book>>? future, BookProvider bookProvider) {
+    return FutureBuilder<List<Book>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.black));
+        if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No books found.'));
+
+        final books = snapshot.data!;
+        return SizedBox(
+          height: 240,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: books.length,
+            itemBuilder: (context, index) {
+              final book = books[index];
+              // --- GANTI INI ---
+              // final isSaved = bookProvider.isBookSaved(book.id);
+              final String? bookStatus = bookProvider.getBookStatus(book.id);
+              // -----------------
+              final padding = (index == 0) ? 24.0 : 16.0;
+              return Padding(
+                padding: EdgeInsets.only(left: padding),
+                // --- KIRIM bookStatus ---
+                child: _buildBookCard(book, bookStatus, () => _navigateToDetail(book.id)),
+                // ---------------------
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildVerticalBookList(Future<List<Book>>? future, BookProvider bookProvider) {
+    return FutureBuilder<List<Book>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.black));
+        if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No books found.'));
+
+        final books = snapshot.data!;
+        return ListView.builder(
+          itemCount: books.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final book = books[index];
+            // --- GANTI INI ---
+            // final isSaved = bookProvider.isBookSaved(book.id);
+            final String? bookStatus = bookProvider.getBookStatus(book.id);
+            // -----------------
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+              // --- KIRIM bookStatus ---
+              child: _buildBookListItem(book, bookStatus, () => _navigateToDetail(book.id)),
+              // ---------------------
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSearchResultsList(Future<List<Book>>? future, BookProvider bookProvider) {
+    if (future == null) return const Padding(padding: EdgeInsets.symmetric(horizontal: 24.0), child: Text('Type a keyword and press Enter to search.'));
+
+    return FutureBuilder<List<Book>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.black));
+        if (snapshot.hasError) return Center(child: Text('Error searching books: ${snapshot.error}'));
+        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No books found matching your search.'));
+
+        final books = snapshot.data!;
+        return ListView.builder(
+          itemCount: books.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final book = books[index];
+            // --- GANTI INI ---
+            // final isSaved = bookProvider.isBookSaved(book.id);
+            final String? bookStatus = bookProvider.getBookStatus(book.id);
+            // -----------------
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+              // --- KIRIM bookStatus ---
+              child: _buildBookListItem(book, bookStatus, () => _navigateToDetail(book.id)),
+              // ---------------------
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBookCard(Book book, String? bookStatus, VoidCallback onTap) {
+    final bool isSaved = bookStatus != null; // isSaved tetap pakai ini
+
+    return InkWell(
+      onTap: onTap, // onTap selalu aktif
+      child: SizedBox(
+        width: 140,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    book.thumbnailLink,
+                    height: 180,
+                    width: 140,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) => progress == null ? child : Container(height: 180, width: 140, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator(strokeWidth: 2))),
+                    errorBuilder: (context, error, stackTrace) => Container(height: 180, width: 140, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image, color: Colors.grey))),
+                  ),
+                ),
+                // --- MODIFIKASI IKON OVERLAY ---
+                if (isSaved)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration( color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(12)),
+                      child: Center(
+                        child: Icon(
+                           bookStatus == 'finished' ? Icons.visibility : Icons.bookmark_added, // <-- LOGIKA IKON
+                            color: Colors.white, size: 40
+                        ),
+                      ),
+                    ),
+                  ),
+                // -----------------------------
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(book.authors.join(', '), style: TextStyle(fontSize: 12, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildBookListItem(Book book, String? bookStatus, VoidCallback onTap) {
+    final bool isSaved = bookStatus != null;
+
+    return InkWell(
+      onTap: onTap, // onTap selalu aktif
+      child: SizedBox(
+        height: 120,
+        child: Row(
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    book.thumbnailLink,
+                    height: 120,
+                    width: 80,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, progress) => progress == null ? child : Container(height: 120, width: 80, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator(strokeWidth: 2))),
+                    errorBuilder: (context, error, stackTrace) => Container(height: 120, width: 80, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image, color: Colors.grey))),
+                  ),
+                ),
+                 // --- MODIFIKASI IKON OVERLAY ---
+                if (isSaved)
+                  Positioned.fill(
+                    child: Container(
+                      width: 80,
+                      decoration: BoxDecoration( color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(12)),
+                      child: Center(
+                        child: Icon(
+                          bookStatus == 'finished' ? Icons.visibility : Icons.bookmark_added, // <-- LOGIKA IKON
+                          color: Colors.white, size: 30
+                        ),
+                      ),
+                    ),
+                  ),
+                 // ---------------------------
+              ],
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text(book.authors.join(', '), style: TextStyle(fontSize: 14, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 8),
+                  Row(
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Ikon trailing tetap (check kalau saved, border kalau belum)
+            Icon( isSaved ? Icons.check_circle : Icons.bookmark_border_outlined, color: isSaved ? Colors.green : Colors.grey[600]),
+          ],
+        ),
+      ),
+    );
+  }
+}
