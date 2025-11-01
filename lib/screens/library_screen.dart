@@ -148,22 +148,22 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   icon: Icon(Icons.map_outlined, size: 18, color: Colors.grey[700]),
                   label: Text(
                     'Buka Map',
-                     style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.bold),
                   ),
-                   style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 ),
               ],
             ),
              // Tampilkan Alamat atau Status
-             Padding(
-               padding: const EdgeInsets.only(top: 6.0),
-               child: Text(
+            Padding(
+              padding: const EdgeInsets.only(top: 6.0),
+              child: Text(
                   _userAddress ?? _currentLocationStatus, // Tampilkan alamat kalau ada, kalau nggak, statusnya
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-               ),
-             ),
+              ),
+            ),
           ],
         ),
       ),

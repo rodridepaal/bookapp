@@ -13,6 +13,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:bookapp/models/saved_book_model.dart';
 import 'package:bookapp/providers/book_provider.dart';
 import 'package:bookapp/providers/user_provider.dart';
+import 'package:bookapp/services/notification_service.dart';
 
 // --- SCREENS ---
 import 'package:bookapp/screens/splash_screen.dart';
@@ -25,6 +26,8 @@ Future<void> main() async {
   // --- BAGIAN INISIALISASI ---
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
+  await NotificationService.initialize();
+  await NotificationService.scheduleDailyReadingNotification();
   await Hive.initFlutter();
   Hive.registerAdapter(SavedBookAdapter());
   await Hive.openBox('userBox');

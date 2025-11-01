@@ -1,5 +1,3 @@
-// lib/screens/home_screen.dart
-
 import 'package:bookapp/models/book_model.dart';
 import 'package:bookapp/providers/book_provider.dart';
 import 'package:bookapp/providers/user_provider.dart';
@@ -8,6 +6,7 @@ import 'package:bookapp/screens/profile_screen.dart';
 import 'package:bookapp/services/google_books_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bookapp/services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -59,7 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _navigateToDetail(String bookId) async {
     if (_isLoadingDetail) return;
-    setState(() { _isLoadingDetail = true; });
+    setState(() {
+      _isLoadingDetail = true;
+    });
 
     try {
       final Book? bookDetail = await _booksService.fetchBookById(bookId);
@@ -67,7 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (bookDetail != null) {
         await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DetailBookScreen(book: bookDetail)),
+          MaterialPageRoute(
+            builder: (context) => DetailBookScreen(book: bookDetail),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -82,7 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } finally {
       if (mounted) {
-         setState(() { _isLoadingDetail = false; });
+        setState(() {
+          _isLoadingDetail = false;
+        });
       }
     }
   }
@@ -115,12 +120,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           if (_isLoadingDetail)
-             Container(
-               color: Colors.black.withOpacity(0.5),
-               child: const Center(
-                 child: CircularProgressIndicator(color: Colors.white),
-               ),
-             ),
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
         ],
       ),
     );
@@ -133,11 +138,32 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Hi, ${userProvider.userName}!', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          TextButton(
+            onPressed: () {
+              NotificationService.showTestNotificationNow();
+            },
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+            ),
+            child: Text(
+              'Hi, ${userProvider.userName}!',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black
+              ),
+            ),
+          ),
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            ),
             child: CircleAvatar(
-              key: ValueKey(userProvider.imagePath ?? DateTime.now().toString()),
+              key: ValueKey(
+                userProvider.imagePath ?? DateTime.now().toString(),
+              ),
               radius: 24,
               backgroundImage: userProvider.profileImage,
             ),
@@ -167,7 +193,10 @@ class _HomeScreenState extends State<HomeScreen> {
           filled: true,
           fillColor: Colors.grey[200],
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
         ),
         onSubmitted: (value) => _performSearch(value),
       ),
@@ -177,7 +206,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -207,13 +239,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHorizontalBookList(Future<List<Book>>? future, BookProvider bookProvider) {
+  Widget _buildHorizontalBookList(
+    Future<List<Book>>? future,
+    BookProvider bookProvider,
+  ) {
     return FutureBuilder<List<Book>>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.black));
-        if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No books found.'));
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.black),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No books found.'));
+        }
 
         final books = snapshot.data!;
         return SizedBox(
@@ -223,16 +266,15 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: books.length,
             itemBuilder: (context, index) {
               final book = books[index];
-              // --- GANTI INI ---
-              // final isSaved = bookProvider.isBookSaved(book.id);
               final String? bookStatus = bookProvider.getBookStatus(book.id);
-              // -----------------
               final padding = (index == 0) ? 24.0 : 16.0;
               return Padding(
                 padding: EdgeInsets.only(left: padding),
-                // --- KIRIM bookStatus ---
-                child: _buildBookCard(book, bookStatus, () => _navigateToDetail(book.id)),
-                // ---------------------
+                child: _buildBookCard(
+                  book,
+                  bookStatus,
+                  () => _navigateToDetail(book.id),
+                ),
               );
             },
           ),
@@ -241,13 +283,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildVerticalBookList(Future<List<Book>>? future, BookProvider bookProvider) {
+  Widget _buildVerticalBookList(
+    Future<List<Book>>? future,
+    BookProvider bookProvider,
+  ) {
     return FutureBuilder<List<Book>>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.black));
-        if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No books found.'));
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.black),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No books found.'));
+        }
 
         final books = snapshot.data!;
         return ListView.builder(
@@ -256,15 +309,17 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
             final book = books[index];
-            // --- GANTI INI ---
-            // final isSaved = bookProvider.isBookSaved(book.id);
             final String? bookStatus = bookProvider.getBookStatus(book.id);
-            // -----------------
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-              // --- KIRIM bookStatus ---
-              child: _buildBookListItem(book, bookStatus, () => _navigateToDetail(book.id)),
-              // ---------------------
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 8.0,
+              ),
+              child: _buildBookCard(
+                book,
+                bookStatus,
+                () => _navigateToDetail(book.id),
+              ),
             );
           },
         );
@@ -272,15 +327,35 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchResultsList(Future<List<Book>>? future, BookProvider bookProvider) {
-    if (future == null) return const Padding(padding: EdgeInsets.symmetric(horizontal: 24.0), child: Text('Type a keyword and press Enter to search.'));
+  Widget _buildSearchResultsList(
+    Future<List<Book>>? future,
+    BookProvider bookProvider,
+  ) {
+    if (future == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 24.0),
+        child: Text('Type a keyword and press Enter to search.'),
+      );
+    }
 
     return FutureBuilder<List<Book>>(
       future: future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.black));
-        if (snapshot.hasError) return Center(child: Text('Error searching books: ${snapshot.error}'));
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No books found matching your search.'));
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.black),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error searching books: ${snapshot.error}'),
+          );
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text('No books found matching your search.'),
+          );
+        }
 
         final books = snapshot.data!;
         return ListView.builder(
@@ -289,15 +364,17 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const NeverScrollableScrollPhysics(),
           itemBuilder: (context, index) {
             final book = books[index];
-            // --- GANTI INI ---
-            // final isSaved = bookProvider.isBookSaved(book.id);
             final String? bookStatus = bookProvider.getBookStatus(book.id);
-            // -----------------
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-              // --- KIRIM bookStatus ---
-              child: _buildBookListItem(book, bookStatus, () => _navigateToDetail(book.id)),
-              // ---------------------
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 8.0,
+              ),
+              child: _buildBookListItem(
+                book,
+                bookStatus,
+                () => _navigateToDetail(book.id),
+              ),
             );
           },
         );
@@ -306,10 +383,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBookCard(Book book, String? bookStatus, VoidCallback onTap) {
-    final bool isSaved = bookStatus != null; // isSaved tetap pakai ini
+    final bool isSaved = bookStatus != null;
 
     return InkWell(
-      onTap: onTap, // onTap selalu aktif
+      onTap: onTap,
       child: SizedBox(
         width: 140,
         child: Column(
@@ -324,39 +401,71 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 180,
                     width: 140,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, progress) => progress == null ? child : Container(height: 180, width: 140, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator(strokeWidth: 2))),
-                    errorBuilder: (context, error, stackTrace) => Container(height: 180, width: 140, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image, color: Colors.grey))),
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : Container(
+                            height: 180,
+                            width: 140,
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 180,
+                      width: 140,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
                   ),
                 ),
-                // --- MODIFIKASI IKON OVERLAY ---
-                if (isSaved)
+                                if (isSaved)
                   Positioned.fill(
                     child: Container(
-                      decoration: BoxDecoration( color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Center(
                         child: Icon(
-                           bookStatus == 'finished' ? Icons.visibility : Icons.bookmark_added, // <-- LOGIKA IKON
-                            color: Colors.white, size: 40
+                          bookStatus == 'finished'
+                              ? Icons.visibility
+                              : Icons.bookmark_added,
+                          color: Colors.white,
+                          size: 40,
                         ),
                       ),
                     ),
                   ),
-                // -----------------------------
               ],
             ),
             const SizedBox(height: 8),
-            Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(book.authors.join(', '), style: TextStyle(fontSize: 12, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(
+              book.title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              book.authors.join(', '),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
     );
   }
+
   Widget _buildBookListItem(Book book, String? bookStatus, VoidCallback onTap) {
     final bool isSaved = bookStatus != null;
 
     return InkWell(
-      onTap: onTap, // onTap selalu aktif
+      onTap: onTap,
       child: SizedBox(
         height: 120,
         child: Row(
@@ -370,25 +479,46 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 120,
                     width: 80,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, progress) => progress == null ? child : Container(height: 120, width: 80, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator(strokeWidth: 2))),
-                    errorBuilder: (context, error, stackTrace) => Container(height: 120, width: 80, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image, color: Colors.grey))),
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : Container(
+                            height: 120,
+                            width: 80,
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 120,
+                      width: 80,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
                   ),
                 ),
-                 // --- MODIFIKASI IKON OVERLAY ---
-                if (isSaved)
+                                if (isSaved)
                   Positioned.fill(
                     child: Container(
                       width: 80,
-                      decoration: BoxDecoration( color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Center(
                         child: Icon(
-                          bookStatus == 'finished' ? Icons.visibility : Icons.bookmark_added, // <-- LOGIKA IKON
-                          color: Colors.white, size: 30
+                          bookStatus == 'finished'
+                              ? Icons.visibility
+                              : Icons.bookmark_added,
+                          color: Colors.white,
+                          size: 30,
                         ),
                       ),
                     ),
                   ),
-                 // ---------------------------
               ],
             ),
             const SizedBox(width: 16),
@@ -397,18 +527,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    book.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 4),
-                  Text(book.authors.join(', '), style: TextStyle(fontSize: 14, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    book.authors.join(', '),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 8),
-                  Row(
-                  )
+                  Row(),
                 ],
               ),
             ),
             const SizedBox(width: 16),
-            // Ikon trailing tetap (check kalau saved, border kalau belum)
-            Icon( isSaved ? Icons.check_circle : Icons.bookmark_border_outlined, color: isSaved ? Colors.green : Colors.grey[600]),
+            Icon(
+              isSaved ? Icons.check_circle : Icons.bookmark_border_outlined,
+              color: isSaved ? Colors.green : Colors.grey[600],
+            ),
           ],
         ),
       ),
