@@ -40,26 +40,29 @@ class Book {
     this.retailPriceCurrency,
   });
 
-factory Book.fromJson(Map<String, dynamic> json) {
+  factory Book.fromJson(Map<String, dynamic> json) {
     final volumeInfo = json['volumeInfo'] ?? {};
     final saleInfo = json['saleInfo'] as Map<String, dynamic>?;
     final listPrice = saleInfo?['listPrice'] as Map<String, dynamic>?;
     final retailPrice = saleInfo?['retailPrice'] as Map<String, dynamic>?;
     final imageLinks = volumeInfo['imageLinks'] as Map<String, dynamic>?;
-    final thumbnail = imageLinks?['thumbnail'] ??
-                      imageLinks?['smallThumbnail'] ??
-                      'https://via.placeholder.com/150';
+    final thumbnail =
+        imageLinks?['thumbnail'] ??
+        imageLinks?['smallThumbnail'] ??
+        'https://via.placeholder.com/150';
     final authorsList = volumeInfo['authors'] as List<dynamic>?;
-    final authors = authorsList?.map((e) => e.toString()).toList() ?? ['Unknown Author'];
+    final authors =
+        authorsList?.map((e) => e.toString()).toList() ?? ['Unknown Author'];
     final categoriesList = volumeInfo['categories'] as List<dynamic>?;
-    final categories = categoriesList?.map((e) => e.toString()).toList() ?? ['No Genre'];
+    final categories =
+        categoriesList?.map((e) => e.toString()).toList() ?? ['No Genre'];
     final date = volumeInfo['publishedDate'] ?? '0000';
     final publishedYear = date.length >= 4 ? date.substring(0, 4) : '0000';
 
     // --- PASTIKAN INI ADA SEBELUM 'return' ---
     final rawDescription = volumeInfo['description'] ?? 'No Description';
 
-return Book(
+    return Book(
       id: json['id'] ?? 'Unknown ID',
       title: volumeInfo['title'] ?? 'No Title',
       authors: authors,

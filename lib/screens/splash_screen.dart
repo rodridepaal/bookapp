@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _checkSession() {
     // Buka box session yang sudah kita buat di main.dart
     var sessionBox = Hive.box('sessionBox');
-    
+
     // Cek apakah ada data 'isLoggedIn' dan nilainya true
     bool isLoggedIn = sessionBox.get('isLoggedIn', defaultValue: false);
 
@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
               'assets/images/logo.png',
               width: 100, // Sesuaikan ukuran
               // Mungkin perlu atur warnanya jika logonya transparan
-              // color: Colors.white, 
+              // color: Colors.white,
             ),
           ),
         ),

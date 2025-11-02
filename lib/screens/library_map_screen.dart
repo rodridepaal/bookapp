@@ -36,10 +36,31 @@ class _LibraryMapScreenState extends State<LibraryMapScreen> {
   void _buildMarkers() {
     setState(() {
       // Marker user
-      _markers.add( Marker( markerId: const MarkerId('user_location'), position: LatLng(widget.userPosition.latitude, widget.userPosition.longitude), infoWindow: const InfoWindow(title: 'Lokasi Kamu'), icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),),);
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('user_location'),
+          position: LatLng(
+            widget.userPosition.latitude,
+            widget.userPosition.longitude,
+          ),
+          infoWindow: const InfoWindow(title: 'Lokasi Kamu'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
+        ),
+      );
       // Marker perpustakaan
       for (final library in widget.libraries) {
-        _markers.add( Marker( markerId: MarkerId(library.id.toString()), position: LatLng(library.latitude, library.longitude), infoWindow: InfoWindow( title: library.name, snippet: library.address,),),);
+        _markers.add(
+          Marker(
+            markerId: MarkerId(library.id.toString()),
+            position: LatLng(library.latitude, library.longitude),
+            infoWindow: InfoWindow(
+              title: library.name,
+              snippet: library.address,
+            ),
+          ),
+        );
       }
     });
   }
@@ -48,9 +69,14 @@ class _LibraryMapScreenState extends State<LibraryMapScreen> {
   @override
   Widget build(BuildContext context) {
     // Tentukan target kamera awal
-    final LatLng cameraTarget = widget.initialTarget ?? LatLng(widget.userPosition.latitude, widget.userPosition.longitude);
+    final LatLng cameraTarget =
+        widget.initialTarget ??
+        LatLng(widget.userPosition.latitude, widget.userPosition.longitude);
     final double initialZoom = widget.initialTarget != null ? 16.0 : 14.0;
-    final CameraPosition initialCameraPosition = CameraPosition( target: cameraTarget, zoom: initialZoom );
+    final CameraPosition initialCameraPosition = CameraPosition(
+      target: cameraTarget,
+      zoom: initialZoom,
+    );
 
     return Scaffold(
       appBar: _buildAppBar(), // Panggil helper AppBar
@@ -58,20 +84,26 @@ class _LibraryMapScreenState extends State<LibraryMapScreen> {
         mapType: MapType.normal,
         initialCameraPosition: initialCameraPosition,
         markers: _markers,
-        onMapCreated: (GoogleMapController controller) { _controller.complete(controller); },
+        onMapCreated: (GoogleMapController controller) {
+          _controller.complete(controller);
+        },
       ),
     );
   }
 
   // --- HANYA SATU DEFINISI FUNGSI INI ---
   AppBar _buildAppBar() {
-     return AppBar(
-         title: const Text( 'Peta Perpustakaan', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black), // Buat tombol back jadi hitam
-      );
-   }
+    return AppBar(
+      title: const Text(
+        'Peta Perpustakaan',
+        style: TextStyle(color: Colors.black),
+      ),
+      backgroundColor: Colors.white,
+      elevation: 1,
+      iconTheme: const IconThemeData(
+        color: Colors.black,
+      ), // Buat tombol back jadi hitam
+    );
+  }
   // ------------------------------------
-
 } // <-- Tutup Class State

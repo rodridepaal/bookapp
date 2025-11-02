@@ -13,7 +13,7 @@ class CurrencyService {
     // Pastikan mata uang asal valid (salah satu dari 4 target)
     if (!_targetCurrencies.contains(fromCurrency)) {
       print('Error: Mata uang asal tidak valid: $fromCurrency');
-       return {}; // Kembalikan map kosong jika tidak valid
+      return {}; // Kembalikan map kosong jika tidak valid
     }
 
     // Buat daftar mata uang tujuan (semua target KECUALI mata uang asal)
@@ -50,7 +50,9 @@ class CurrencyService {
         return convertedRates;
       } else {
         // Gagal ambil data
-        throw Exception('Failed to load currency rates (Status code: ${response.statusCode})');
+        throw Exception(
+          'Failed to load currency rates (Status code: ${response.statusCode})',
+        );
       }
     } catch (e) {
       print('Error fetching rates: $e');

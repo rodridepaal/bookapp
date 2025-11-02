@@ -12,13 +12,17 @@ class OsmService {
   final int _timeoutSeconds = 30;
 
   Future<List<OsmPlace>> getNearbyLibraries(
-      double latitude, double longitude,
-      {double radiusMeters = 5000}) async { // Default radius 5km
+    double latitude,
+    double longitude, {
+    double radiusMeters = 5000,
+  }) async {
+    // Default radius 5km
 
     // Query Overpass QL: Cari node & way dengan tag amenity=library
     // di sekitar (around) koordinat dalam radius tertentu.
     // Minta output JSON. Minta data center untuk way/relation.
-    final String query = """
+    final String query =
+        """
     [out:json][timeout:$_timeoutSeconds];
     (
       node["amenity"="library"](around:$radiusMeters,$latitude,$longitude);
@@ -33,16 +37,20 @@ class OsmService {
 
     try {
       // Overpass pakai POST request
-      final response = await http.post(
-        Uri.parse(_overpassUrl),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'data': query}, // Kirim query di body
-      ).timeout(Duration(seconds: _timeoutSeconds));
+      final response = await http
+          .post(
+            Uri.parse(_overpassUrl),
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: {'data': query}, // Kirim query di body
+          )
+          .timeout(Duration(seconds: _timeoutSeconds));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final elements = data['elements'] as List<dynamic>?;
-         print('DEBUG (OSM): Response received. Elements count: ${elements?.length ?? 0}');
+        print(
+          'DEBUG (OSM): Response received. Elements count: ${elements?.length ?? 0}',
+        );
 
         if (elements == null) {
           return [];
@@ -51,12 +59,16 @@ class OsmService {
         // Ubah setiap 'element' JSON menjadi objek OsmPlace
         // Filter juga yg nggak punya nama (kadang ada data OSM yg aneh)
         return elements
-               .where((element) => element['tags']?['name'] != null)
-               .map((element) => OsmPlace.fromJson(element))
-               .toList();
+            .where((element) => element['tags']?['name'] != null)
+            .map((element) => OsmPlace.fromJson(element))
+            .toList();
       } else {
-         print('DEBUG (OSM): Error - Status Code: ${response.statusCode}, Body: ${response.body}');
-        throw Exception('Failed to load libraries from Overpass API (Status: ${response.statusCode})');
+        print(
+          'DEBUG (OSM): Error - Status Code: ${response.statusCode}, Body: ${response.body}',
+        );
+        throw Exception(
+          'Failed to load libraries from Overpass API (Status: ${response.statusCode})',
+        );
       }
     } catch (e) {
       print('DEBUG (OSM): Exception - $e');

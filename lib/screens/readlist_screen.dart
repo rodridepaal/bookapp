@@ -54,12 +54,18 @@ class _ReadListScreenState extends State<ReadListScreen> {
 
     // Periksa mounted sebelum setState
     if (!mounted) return;
-    setState(() { _isLoadingDetail = true; }); // Tampilkan loading
+    setState(() {
+      _isLoadingDetail = true;
+    }); // Tampilkan loading
 
     try {
       print('DEBUG (ReadList): Memanggil fetchBookById for $bookId...');
-      final book_api.Book? bookDetail = await _booksService.fetchBookById(bookId);
-      print('DEBUG (ReadList): fetchBookById selesai. Hasil: ${bookDetail?.title ?? "NULL"}');
+      final book_api.Book? bookDetail = await _booksService.fetchBookById(
+        bookId,
+      );
+      print(
+        'DEBUG (ReadList): fetchBookById selesai. Hasil: ${bookDetail?.title ?? "NULL"}',
+      );
 
       if (!mounted) return; // Cek lagi setelah await
 
@@ -68,7 +74,9 @@ class _ReadListScreenState extends State<ReadListScreen> {
         // Tunggu navigasi selesai baru matikan loading
         await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DetailBookScreen(book: bookDetail)),
+          MaterialPageRoute(
+            builder: (context) => DetailBookScreen(book: bookDetail),
+          ),
         );
       } else {
         print('DEBUG (ReadList): bookDetail null, menampilkan snackbar.');
@@ -78,7 +86,8 @@ class _ReadListScreenState extends State<ReadListScreen> {
       }
     } catch (e) {
       print('DEBUG (ReadList): ERROR saat fetch/navigasi: $e');
-      if (mounted) { // Cek mounted sebelum panggil context
+      if (mounted) {
+        // Cek mounted sebelum panggil context
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Gagal memuat detail buku.')),
         );
@@ -86,8 +95,10 @@ class _ReadListScreenState extends State<ReadListScreen> {
     } finally {
       // Pastikan widget masih ada sebelum set state
       if (mounted) {
-         setState(() { _isLoadingDetail = false; }); // Sembunyikan loading
-         print('DEBUG (ReadList): Loading detail disembunyikan.');
+        setState(() {
+          _isLoadingDetail = false;
+        }); // Sembunyikan loading
+        print('DEBUG (ReadList): Loading detail disembunyikan.');
       }
     }
   }
@@ -100,7 +111,8 @@ class _ReadListScreenState extends State<ReadListScreen> {
         automaticallyImplyLeading: false,
         elevation: 0,
         backgroundColor: Colors.white,
-        title: TextField( // Search bar
+        title: TextField(
+          // Search bar
           controller: _searchController,
           decoration: InputDecoration(
             hintText: 'Search your read list...',
@@ -115,7 +127,8 @@ class _ReadListScreenState extends State<ReadListScreen> {
           ),
         ),
       ),
-      body: Stack( // Pakai Stack untuk overlay loading
+      body: Stack(
+        // Pakai Stack untuk overlay loading
         children: [
           Consumer<BookProvider>(
             builder: (context, provider, child) {
@@ -130,17 +143,25 @@ class _ReadListScreenState extends State<ReadListScreen> {
                 filteredList = allReadListBooks;
               } else {
                 filteredList = allReadListBooks.where((book) {
-                  return book.title.toLowerCase().contains(_searchQuery.toLowerCase());
+                  return book.title.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  );
                 }).toList();
               }
-              print("DEBUG (ReadList): Filtered list count: ${filteredList.length}");
+              print(
+                "DEBUG (ReadList): Filtered list count: ${filteredList.length}",
+              );
 
               // Tampilkan pesan jika list kosong
               if (filteredList.isEmpty && _searchQuery.isNotEmpty) {
-                return const Center(child: Text('Buku tidak ditemukan di Read List-mu.'));
+                return const Center(
+                  child: Text('Buku tidak ditemukan di Read List-mu.'),
+                );
               }
               if (allReadListBooks.isEmpty) {
-                 return const Center(child: Text('Kamu belum menambahkan buku ke Read List.'));
+                return const Center(
+                  child: Text('Kamu belum menambahkan buku ke Read List.'),
+                );
               }
 
               // Tampilkan ListView hasil filter
@@ -151,12 +172,21 @@ class _ReadListScreenState extends State<ReadListScreen> {
                   // InkWell DI SINI, membungkus SavedBookListItem
                   return InkWell(
                     onTap: () {
-                      print('DEBUG (ReadList): InkWell di-tap! Book ID: ${savedBook.bookId}');
-                      _navigateToDetail(savedBook.bookId); // Panggil fungsi navigasi
+                      print(
+                        'DEBUG (ReadList): InkWell di-tap! Book ID: ${savedBook.bookId}',
+                      );
+                      _navigateToDetail(
+                        savedBook.bookId,
+                      ); // Panggil fungsi navigasi
                     },
-                    child: SavedBookListItem( // Widget item (TANPA InkWell di dalamnya)
+                    child: SavedBookListItem(
+                      // Widget item (TANPA InkWell di dalamnya)
                       book: savedBook,
-                      trailing: Icon( Icons.bookmark, color: Colors.yellow[700], size: 28),
+                      trailing: Icon(
+                        Icons.bookmark,
+                        color: Colors.yellow[700],
+                        size: 28,
+                      ),
                     ),
                   );
                 },
@@ -175,5 +205,6 @@ class _ReadListScreenState extends State<ReadListScreen> {
       ),
     );
   }
+
   // --- TIDAK ADA DEFINISI FUNGSI LAGI DI BAWAH SINI ---
 } // <-- Tutup Class State

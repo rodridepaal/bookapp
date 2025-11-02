@@ -13,7 +13,7 @@ class GoogleBooksService {
       return []; // Kembalikan list kosong jika tidak ada 'items'
     }
 
-  print('DEBUG (API Response): Jumlah item diterima = ${items.length}');
+    print('DEBUG (API Response): Jumlah item diterima = ${items.length}');
 
     // Ubah setiap item JSON menjadi objek Book
     return items.map((item) => Book.fromJson(item)).toList();
@@ -22,7 +22,9 @@ class GoogleBooksService {
   // Fungsi untuk mengambil "Popular Books" (by relevance)
   Future<List<Book>> fetchPopularBooks() async {
     // Kita cari manga (subject:manga) dan urutkan berdasarkan relevansi
-    final response = await http.get(Uri.parse('$_baseUrl?q=book&orderBy=relevance&maxResults=20')); // Query manga
+    final response = await http.get(
+      Uri.parse('$_baseUrl?q=book&orderBy=relevance&maxResults=20'),
+    ); // Query manga
 
     if (response.statusCode == 200) {
       return _parseBooks(response.body);
@@ -33,7 +35,9 @@ class GoogleBooksService {
 
   // Fungsi untuk mengambil "Newest Books" (fiksi terbaru)
   Future<List<Book>> fetchNewestBooks() async {
-    final response = await http.get(Uri.parse('$_baseUrl?q=subject:fiction&orderBy=newest&maxResults=20'));
+    final response = await http.get(
+      Uri.parse('$_baseUrl?q=subject:fiction&orderBy=newest&maxResults=20'),
+    );
 
     if (response.statusCode == 200) {
       return _parseBooks(response.body);
@@ -44,7 +48,9 @@ class GoogleBooksService {
 
   // Fungsi untuk cari buku
   Future<List<Book>> searchBooks(String query) async {
-    final response = await http.get(Uri.parse('$_baseUrl?q=$query&maxResults=20'));
+    final response = await http.get(
+      Uri.parse('$_baseUrl?q=$query&maxResults=20'),
+    );
 
     if (response.statusCode == 200) {
       return _parseBooks(response.body);
@@ -70,12 +76,16 @@ class GoogleBooksService {
       if (response.statusCode == 200) {
         // API ini ngembaliin satu objek buku, BUKAN list 'items'
         final jsonData = json.decode(response.body);
-        print('DEBUG: JSON Data received (partial): ${response.body.length > 200 ? response.body.substring(0, 200) + "..." : response.body}'); // Print sebagian body
+        print(
+          'DEBUG: JSON Data received (partial): ${response.body.length > 200 ? response.body.substring(0, 200) + "..." : response.body}',
+        ); // Print sebagian body
         try {
           // Langsung parse jsonData
           return Book.fromJson(jsonData);
         } catch (e) {
-          print('DEBUG: ERROR parsing JSON Book.fromJson: $e'); // Print error parsing
+          print(
+            'DEBUG: ERROR parsing JSON Book.fromJson: $e',
+          ); // Print error parsing
           return null; // Gagal parsing
         }
       } else if (response.statusCode == 404) {
@@ -83,7 +93,9 @@ class GoogleBooksService {
         return null; // Buku tidak ada
       } else {
         // Print error API lainnya
-        print('DEBUG: Gagal fetchBookById. Status: ${response.statusCode}, Body: ${response.body}');
+        print(
+          'DEBUG: Gagal fetchBookById. Status: ${response.statusCode}, Body: ${response.body}',
+        );
         // Jangan throw Exception biar ReadListScreen bisa nampilin snackbar
         return null; // Gagal karena error lain
       }
@@ -93,5 +105,6 @@ class GoogleBooksService {
       return null; // Gagal karena exception
     }
   }
+
   // --------------------------------------------------
 }

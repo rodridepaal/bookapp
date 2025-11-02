@@ -29,8 +29,10 @@ class NotificationService {
   }
 
   static void _requestAndroidPermission() async {
-    final plugin = _notificationsPlugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final plugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     if (plugin != null) {
       final bool? granted = await plugin.requestExactAlarmsPermission();
       print("DEBUG (Notif): Android Notification Permission Granted: $granted");
@@ -42,15 +44,16 @@ class NotificationService {
     // 1. Tentukan detail notifikasi
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'daily_reading_channel_id', // ID Channel
-      'Daily Reading Reminder', // Nama Channel
-      channelDescription: 'Pengingat harian untuk membaca buku jam 8 malam',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
+          'daily_reading_channel_id', // ID Channel
+          'Daily Reading Reminder', // Nama Channel
+          channelDescription: 'Pengingat harian untuk membaca buku jam 8 malam',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        );
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
     );
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidDetails);
 
     // 2. Tentukan waktu (Jam 8 malam / 20:00)
     final tz.TZDateTime scheduledTime = _nextInstanceOf8PM();
@@ -71,21 +74,24 @@ class NotificationService {
 
   // Fungsi untuk menampilkan notifikasi tes segera (dipanggil dari UI)
   static Future<void> showTestNotificationNow() async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'test_channel_id',
-      'Test Notifications',
-      channelDescription: 'Channel for test notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-    );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'test_channel_id',
+          'Test Notifications',
+          channelDescription: 'Channel for test notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        );
 
-    const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
 
     await _notificationsPlugin.show(
       999, // id unik untuk notifikasi tes
-      'Notifikasi Tes',
-      'Ini adalah notifikasi tes yang dikirim sekarang.',
+      'Waktunya Membaca Buku!', // Judul
+      'Jangan lupa  buat baca buku hari ini oi 📚', // Isi
       notificationDetails,
     );
     print('DEBUG (Notif): Test notification shown.');

@@ -34,7 +34,9 @@ class BookProvider extends ChangeNotifier {
     _savedBooks = _savedBooksBox.values.toList();
     // Beri tahu semua "pendengar" (widget) bahwa datanya sudah update
     notifyListeners();
-     print('DEBUG (BookProvider): _loadSavedBooks called. Count: ${_savedBooks.length}'); // Debug
+    print(
+      'DEBUG (BookProvider): _loadSavedBooks called. Count: ${_savedBooks.length}',
+    ); // Debug
   }
 
   // --- FUNGSI UNTUK UI ---
@@ -77,7 +79,7 @@ class BookProvider extends ChangeNotifier {
 
     // Update list lokal dan beri tahu UI (sudah otomatis via listener)
     // _loadSavedBooks(); // Tidak perlu panggil manual lagi
-     print('DEBUG (BookProvider): Added ${book.title} to Read List.'); // Debug
+    print('DEBUG (BookProvider): Added ${book.title} to Read List.'); // Debug
   }
 
   /// Fungsi untuk tombol "Finished"

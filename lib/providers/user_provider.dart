@@ -46,10 +46,12 @@ class UserProvider extends ChangeNotifier {
       final userData = _userBox.get(_userEmail) ?? {};
       _userName = userData['name'] ?? 'User';
       _imagePath = userData['imagePath'];
-      
+
       // Beri tahu UI untuk update
       notifyListeners();
-      print('User data loaded/updated in provider: Name=$_userName, Path=$_imagePath'); // Debug print
+      print(
+        'User data loaded/updated in provider: Name=$_userName, Path=$_imagePath',
+      ); // Debug print
     } else {
       // Jika user data hilang (misal setelah logout lalu login lagi tanpa refresh)
       _userName = 'User';
@@ -62,6 +64,6 @@ class UserProvider extends ChangeNotifier {
   // Fungsi ini bisa dipanggil dari ProfileScreen setelah update Hive
   // Walaupun listener otomatis, ini bisa buat update lebih cepat
   void triggerUpdate() {
-  loadUserData();
+    loadUserData();
   }
 }

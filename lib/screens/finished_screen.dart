@@ -34,7 +34,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
-         print("DEBUG (Finished): Search query changed: $_searchQuery");
+        print("DEBUG (Finished): Search query changed: $_searchQuery");
       });
     });
   }
@@ -49,7 +49,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
   String _formatTimestamp(DateTime utcTimestamp) {
     final location = tz.getLocation(_timezones[_selectedZone]!);
     final zonedTime = tz.TZDateTime.from(utcTimestamp, location);
-    final formatter = DateFormat('dd/MM/yyyy HH:mm'); // Format Tanggal Jam:Menit
+    final formatter = DateFormat(
+      'dd/MM/yyyy HH:mm',
+    ); // Format Tanggal Jam:Menit
     return formatter.format(zonedTime);
   }
   // ------------------------------------
@@ -57,15 +59,21 @@ class _FinishedScreenState extends State<FinishedScreen> {
   // --- HANYA SATU DEFINISI FUNGSI INI ---
   Future<void> _navigateToDetail(String bookId) async {
     if (_isLoadingDetail) return;
-    setState(() { _isLoadingDetail = true; });
+    setState(() {
+      _isLoadingDetail = true;
+    });
 
     try {
-      final book_api.Book? bookDetail = await _booksService.fetchBookById(bookId);
+      final book_api.Book? bookDetail = await _booksService.fetchBookById(
+        bookId,
+      );
       if (!mounted) return;
       if (bookDetail != null) {
         await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DetailBookScreen(book: bookDetail)),
+          MaterialPageRoute(
+            builder: (context) => DetailBookScreen(book: bookDetail),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -80,7 +88,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() { _isLoadingDetail = false; });
+        setState(() {
+          _isLoadingDetail = false;
+        });
       }
     }
   }
@@ -114,11 +124,22 @@ class _FinishedScreenState extends State<FinishedScreen> {
               child: DropdownButton<String>(
                 value: _selectedZone,
                 icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
-                items: _timezones.keys.map((zone) => DropdownMenuItem(value: zone, child: Text(zone))).toList(),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                items: _timezones.keys
+                    .map(
+                      (zone) =>
+                          DropdownMenuItem(value: zone, child: Text(zone)),
+                    )
+                    .toList(),
                 onChanged: (value) {
                   if (value != null) {
-                    setState(() { _selectedZone = value; });
+                    setState(() {
+                      _selectedZone = value;
+                    });
                   }
                 },
               ),
@@ -139,17 +160,25 @@ class _FinishedScreenState extends State<FinishedScreen> {
                 filteredList = allFinishedBooks;
               } else {
                 filteredList = allFinishedBooks.where((book) {
-                  return book.title.toLowerCase().contains(_searchQuery.toLowerCase());
+                  return book.title.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  );
                 }).toList();
               }
-              print("DEBUG (Finished): Filtered list count: ${filteredList.length}");
+              print(
+                "DEBUG (Finished): Filtered list count: ${filteredList.length}",
+              );
 
               if (filteredList.isEmpty && _searchQuery.isNotEmpty) {
-                return const Center(child: Text('Buku tidak ditemukan di daftar Finished-mu.'));
+                return const Center(
+                  child: Text('Buku tidak ditemukan di daftar Finished-mu.'),
+                );
               }
 
               if (allFinishedBooks.isEmpty) {
-                 return const Center(child: Text('Kamu belum menyelesaikan buku apapun.'));
+                return const Center(
+                  child: Text('Kamu belum menyelesaikan buku apapun.'),
+                );
               }
 
               return ListView.builder(
@@ -157,11 +186,15 @@ class _FinishedScreenState extends State<FinishedScreen> {
                 itemBuilder: (context, index) {
                   final savedBook = filteredList[index];
                   return InkWell(
-                    onTap: () => _navigateToDetail(savedBook.bookId), // <-- Panggil fungsi di atas
+                    onTap: () => _navigateToDetail(
+                      savedBook.bookId,
+                    ), // <-- Panggil fungsi di atas
                     child: SavedBookListItemWithTime(
                       book: savedBook,
                       formattedDateTime: savedBook.finishedTimestamp != null
-                          ? _formatTimestamp(savedBook.finishedTimestamp!) // <-- Panggil fungsi di atas
+                          ? _formatTimestamp(
+                              savedBook.finishedTimestamp!,
+                            ) // <-- Panggil fungsi di atas
                           : 'N/A',
                       timezoneAbbreviation: _selectedZone,
                     ),
@@ -173,7 +206,9 @@ class _FinishedScreenState extends State<FinishedScreen> {
           if (_isLoadingDetail)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
             ),
         ],
       ),
@@ -181,9 +216,7 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
 
   // --- TIDAK ADA DEFINISI FUNGSI LAGI DI BAWAH SINI ---
-
 } // <-- Tutup Class State
-
 
 // --- WIDGET LIST ITEM (DEFINISI HANYA SATU KALI) ---
 class SavedBookListItemWithTime extends StatelessWidget {
@@ -206,31 +239,52 @@ class SavedBookListItemWithTime extends StatelessWidget {
       child: Row(
         children: [
           ClipRRect(
-             borderRadius: BorderRadius.circular(12),
-             child: Image.network(
-               book.thumbnailLink,
-               height: 100,
-               width: 70,
-               fit: BoxFit.cover,
-               errorBuilder: (context, error, stackTrace) => Container(
-                   height: 100, width: 70, color: Colors.grey[300],
-                   child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              book.thumbnailLink,
+              height: 100,
+              width: 70,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 100,
+                width: 70,
+                color: Colors.grey[300],
+                child: const Center(
+                  child: Icon(Icons.broken_image, color: Colors.grey),
                 ),
-             ),
-           ),
+              ),
+            ),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(book.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(
+                  book.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 4),
-                Text(book.authors, style: TextStyle(fontSize: 14, color: Colors.grey[600]), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  book.authors,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Finished: $formattedDateTime $timezoneAbbreviation', // Tampilkan Tanggal, Jam, Zona
-                  style: TextStyle(fontSize: 10, color: Colors.green[700], fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),

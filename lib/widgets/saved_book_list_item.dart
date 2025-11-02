@@ -16,7 +16,7 @@ class SavedBookListItem extends StatelessWidget {
     // LANGSUNG RETURN CONTAINER
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-      height: 130, // Tinggi item
+      height: 130, //D Tinggi item
       child: Row(
         children: [
           // Gambar Cover

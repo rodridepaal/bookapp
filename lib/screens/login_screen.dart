@@ -45,11 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // ------------------------------------
 
       if (isSuccess) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/home',
-          (route) => false,
-        );
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Email atau password salah')),
@@ -59,9 +55,9 @@ class _LoginScreenState extends State<LoginScreen> {
       // --- PERBAIKAN UNTUK ASYNC GAPS ---
       if (!mounted) return;
       // ------------------------------------
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi error: $e')));
     }
   }
 
@@ -85,10 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
             // Teks Judul
             const Text(
               "Let's Sign you in.\nWelcome back\nYou've been missed!",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
 

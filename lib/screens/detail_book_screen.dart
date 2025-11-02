@@ -29,20 +29,26 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
   void initState() {
     super.initState();
     // 1. Cek status buku
-    currentStatus = Provider.of<BookProvider>(context, listen: false)
-        .getBookStatus(widget.book.id);
+    currentStatus = Provider.of<BookProvider>(
+      context,
+      listen: false,
+    ).getBookStatus(widget.book.id);
 
     // 2. Cek harga & mata uang asli dari Google Books
-    if (widget.book.retailPriceAmount != null && widget.book.retailPriceCurrency != null) {
+    if (widget.book.retailPriceAmount != null &&
+        widget.book.retailPriceCurrency != null) {
       _basePrice = widget.book.retailPriceAmount;
       _baseCurrency = widget.book.retailPriceCurrency;
-    } else if (widget.book.listPriceAmount != null && widget.book.listPriceCurrency != null) {
+    } else if (widget.book.listPriceAmount != null &&
+        widget.book.listPriceCurrency != null) {
       _basePrice = widget.book.listPriceAmount;
       _baseCurrency = widget.book.listPriceCurrency;
     }
 
     // 3. Cek apakah mata uang asli ADA di daftar target kita
-    if (_basePrice != null && _baseCurrency != null && _targetCurrencies.contains(_baseCurrency!)) {
+    if (_basePrice != null &&
+        _baseCurrency != null &&
+        _targetCurrencies.contains(_baseCurrency!)) {
       _canConvert = true; // Bisa dikonversi!
       // Panggil API kurs dengan mata uang asli sebagai 'from'
       _ratesFuture = _currencyService.fetchRates(fromCurrency: _baseCurrency!);
@@ -84,13 +90,21 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
                         : Container(
                             height: 300,
                             color: Colors.grey[200],
-                            child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            ),
                           );
                   },
-                   errorBuilder: (context, error, stackTrace) => Container( // Fallback jika gambar gagal load
-                      height: 300,
-                      color: Colors.grey[200],
-                      child: const Center(child: Icon(Icons.book, color: Colors.grey, size: 50)),
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    // Fallback jika gambar gagal load
+                    height: 300,
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: Icon(Icons.book, color: Colors.grey, size: 50),
+                    ),
                   ),
                 ),
               ),
@@ -106,7 +120,8 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
                   // Judul
                   Text(
                     widget.book.title,
-                    style: GoogleFonts.manrope( // Contoh pakai font kustom
+                    style: GoogleFonts.manrope(
+                      // Contoh pakai font kustom
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -118,10 +133,7 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
                   // Penulis & Tahun
                   Text(
                     '${widget.book.authors.join(', ')} - ${widget.book.publishedDate}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[700],
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                   ),
                   const SizedBox(height: 8),
 
@@ -134,7 +146,9 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
                   const SizedBox(height: 8),
                   Text(
                     // Tampilkan deskripsi atau pesan jika kosong
-                    widget.book.description.isNotEmpty ? widget.book.description : 'No description available.',
+                    widget.book.description.isNotEmpty
+                        ? widget.book.description
+                        : 'No description available.',
                     style: TextStyle(
                       fontSize: 15,
                       color: Colors.grey[800],
@@ -148,8 +162,8 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
                   _buildSectionTitle('Price :'),
                   const SizedBox(height: 8),
                   _buildPriceSection(), // <-- Panggil fungsi baru
-                  // --------------------------
 
+                  // --------------------------
                   const SizedBox(height: 32),
                 ],
               ),
@@ -182,9 +196,14 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
     // Jika BISA dikonversi, gunakan FutureBuilder
     // Pastikan _ratesFuture tidak null sebelum digunakan
     if (_ratesFuture == null) {
-       // Seharusnya tidak terjadi jika _canConvert true, tapi sebagai fallback
-       final format = NumberFormat.currency(locale: 'en_US', symbol: _getCurrencySymbol(_baseCurrency!));
-       return Column(children: [_buildPriceRow(_baseCurrency!, format.format(_basePrice!))]);
+      // Seharusnya tidak terjadi jika _canConvert true, tapi sebagai fallback
+      final format = NumberFormat.currency(
+        locale: 'en_US',
+        symbol: _getCurrencySymbol(_baseCurrency!),
+      );
+      return Column(
+        children: [_buildPriceRow(_baseCurrency!, format.format(_basePrice!))],
+      );
     }
 
     return FutureBuilder<Map<String, double>>(
@@ -192,15 +211,29 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
       builder: (context, snapshot) {
         // Loading
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black));
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.black,
+            ),
+          );
         }
 
         // Error atau data kosong dari API Kurs
         if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-          print('Error/No data from Currency API FutureBuilder: ${snapshot.error}'); // Debug print
+          print(
+            'Error/No data from Currency API FutureBuilder: ${snapshot.error}',
+          ); // Debug print
           // Tetap tampilkan harga asli jika gagal ambil kurs
-           final format = NumberFormat.currency(locale: 'en_US', symbol: _getCurrencySymbol(_baseCurrency!));
-           return Column(children: [_buildPriceRow(_baseCurrency!, format.format(_basePrice!))]);
+          final format = NumberFormat.currency(
+            locale: 'en_US',
+            symbol: _getCurrencySymbol(_baseCurrency!),
+          );
+          return Column(
+            children: [
+              _buildPriceRow(_baseCurrency!, format.format(_basePrice!)),
+            ],
+          );
         }
 
         // Berhasil! Hitung semua harga
@@ -220,11 +253,18 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
         final double priceJPY = _basePrice! * rateJPY;
 
         // Format angka biar bagus
-        final idrFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0); // Rupiah tanpa desimal
+        final idrFormat = NumberFormat.currency(
+          locale: 'id_ID',
+          symbol: 'Rp ',
+          decimalDigits: 0,
+        ); // Rupiah tanpa desimal
         final usdFormat = NumberFormat.currency(locale: 'en_US', symbol: '\$ ');
         final eurFormat = NumberFormat.currency(locale: 'de_DE', symbol: '€ ');
-        final yenFormat = NumberFormat.currency(locale: 'ja_JP', symbol: '¥ ', decimalDigits: 0); // Yen tanpa desimal
-
+        final yenFormat = NumberFormat.currency(
+          locale: 'ja_JP',
+          symbol: '¥ ',
+          decimalDigits: 0,
+        ); // Yen tanpa desimal
 
         return Column(
           children: [
@@ -241,40 +281,45 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
   // Helper untuk simbol mata uang (bisa ditambahin)
   String _getCurrencySymbol(String code) {
     switch (code) {
-      case 'USD': return '\$';
-      case 'EUR': return '€';
-      case 'JPY': return '¥';
-      case 'IDR': return 'Rp';
-      default: return code;
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      case 'JPY':
+        return '¥';
+      case 'IDR':
+        return 'Rp';
+      default:
+        return code;
     }
   }
 
   // Helper untuk Info Buku (Genre, Halaman, Bahasa)
-Widget _buildBookInfoRow() {
-    return Column( // Pakai Column
+  Widget _buildBookInfoRow() {
+    return Column(
+      // Pakai Column
       children: [
         // Baris 1: Genre (di tengah)
         Center(
           child: _buildInfoColumn(
-              'Genre',
-              widget.book.categories.isNotEmpty
-                  ? widget.book.categories.first
-                  : 'N/A'),
+            'Genre',
+            widget.book.categories.isNotEmpty
+                ? widget.book.categories.first
+                : 'N/A',
+          ),
         ),
         const SizedBox(height: 16), // Jarak antar baris
-
         // Baris 2: Pages & Language (berdua)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Jarak rata
           children: [
             _buildInfoColumn(
-                'Pages',
-                widget.book.pageCount > 0
-                    ? widget.book.pageCount.toString()
-                    : '-'),
-            _buildInfoColumn(
-                'Language',
-                widget.book.language.toUpperCase()),
+              'Pages',
+              widget.book.pageCount > 0
+                  ? widget.book.pageCount.toString()
+                  : '-',
+            ),
+            _buildInfoColumn('Language', widget.book.language.toUpperCase()),
           ],
         ),
       ],
@@ -285,16 +330,22 @@ Widget _buildBookInfoRow() {
   Widget _buildInfoColumn(String label, String value) {
     return Column(
       children: [
-        Text( label, style: TextStyle( fontSize: 14, color: Colors.grey[600])),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
         const SizedBox(height: 4),
-        Text( value, style: const TextStyle( fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
 
   // Helper Judul Section
   Widget _buildSectionTitle(String title) {
-    return Text( title, style: const TextStyle( fontSize: 18, fontWeight: FontWeight.bold));
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    );
   }
 
   // Helper Baris Harga
@@ -304,26 +355,29 @@ Widget _buildBookInfoRow() {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text( currency, style: TextStyle(fontSize: 16, color: Colors.grey[700])),
-          Text( price, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            currency,
+            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+          ),
+          Text(
+            price,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
   }
 
-  // Helper Tombol Bawah
-  Widget _buildBottomButtons(BookProvider provider) {
-    // Perlu pakai Consumer di sini agar tombol bisa rebuild saat status berubah
-    // Tapi karena kita pakai setState di handle klik, ini sudah cukup
+Widget _buildBottomButtons(BookProvider provider) {
     final bool isReadList = currentStatus == 'readlist';
     final bool isFinished = currentStatus == 'finished';
 
     return Container(
-      height: 160, // Kurangi jika masih overflow
+      // height: 160, <-- Hapus ini
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       color: Colors.white,
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Agar tingginya pas
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -362,20 +416,7 @@ Widget _buildBookInfoRow() {
               ),
             ],
           ),
-          const SizedBox(height: 8), // Kurangi jarak
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text( 'More Information', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-          )
+          // Bagian tombol "More Information" sudah dihapus
         ],
       ),
     );
@@ -385,26 +426,52 @@ Widget _buildBookInfoRow() {
   void _handleReadListClick(BookProvider provider) {
     if (currentStatus == 'readlist') {
       provider.removeBook(widget.book.id);
-      setState(() { currentStatus = null; });
-      ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('Removed from Read List'), duration: Duration(seconds: 1)));
+      setState(() {
+        currentStatus = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Removed from Read List'),
+          duration: Duration(seconds: 1),
+        ),
+      );
     } else {
       provider.addToReadList(widget.book);
-      setState(() { currentStatus = 'readlist'; });
-      ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('Added to Read List'), duration: Duration(seconds: 1)));
+      setState(() {
+        currentStatus = 'readlist';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Added to Read List'),
+          duration: Duration(seconds: 1),
+        ),
+      );
     }
   }
 
   void _handleFinishedClick(BookProvider provider) {
     if (currentStatus == 'finished') {
       provider.removeBook(widget.book.id);
-      setState(() { currentStatus = null; });
-      ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('Removed from Finished Books'), duration: Duration(seconds: 1)));
+      setState(() {
+        currentStatus = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Removed from Finished Books'),
+          duration: Duration(seconds: 1),
+        ),
+      );
     } else {
       provider.addToFinished(widget.book);
-      setState(() { currentStatus = 'finished'; });
-      ScaffoldMessenger.of(context).showSnackBar( const SnackBar(content: Text('Marked as Finished'), duration: Duration(seconds: 1)));
+      setState(() {
+        currentStatus = 'finished';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Marked as Finished'),
+          duration: Duration(seconds: 1),
+        ),
+      );
     }
   }
-
 } // <-- Tutup Class
-

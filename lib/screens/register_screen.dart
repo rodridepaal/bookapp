@@ -28,51 +28,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
- void _handleRegister() async { // <-- Tambahkan 'async'
-  // Ambil text
-  final name = _nameController.text;
-  final email = _emailController.text;
-  final password = _passwordController.text;
-  final retypePassword = _retypePasswordController.text;
+  void _handleRegister() async {
+    // <-- Tambahkan 'async'
+    // Ambil text
+    final name = _nameController.text;
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final retypePassword = _retypePasswordController.text;
 
-  // --- VALIDASI SEDERHANA ---
-  if (name.isEmpty || email.isEmpty || password.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Semua field harus diisi')),
-    );
-    return; // Berhenti
-  }
-
-  if (password != retypePassword) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password tidak cocok')),
-    );
-    return; // Berhenti
-  }
-
-  // --- PANGGIL AUTH SERVICE ---
-  try {
-    bool isSuccess = await _authService.register(name, email, password);
-
-    if (isSuccess) {
-      // Sukses
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registrasi berhasil! Silakan login.')),
-      );
-      // Pindah ke halaman login
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      // Gagal (email sudah ada)
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email sudah terdaftar')),
-      );
+    // --- VALIDASI SEDERHANA ---
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Semua field harus diisi')));
+      return; // Berhenti
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Terjadi error: $e')),
-    );
+
+    if (password != retypePassword) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Password tidak cocok')));
+      return; // Berhenti
+    }
+
+    // --- PANGGIL AUTH SERVICE ---
+    try {
+      bool isSuccess = await _authService.register(name, email, password);
+
+      if (isSuccess) {
+        // Sukses
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registrasi berhasil! Silakan login.')),
+        );
+        // Pindah ke halaman login
+        Navigator.pushReplacementNamed(context, '/login');
+      } else {
+        // Gagal (email sudah ada)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Email sudah terdaftar')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi error: $e')));
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -95,10 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Teks Judul
             const Text(
               "Let's make an account.\nWelcome!\nLet me know who u are.",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 32),
 
@@ -132,12 +130,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               controller: _retypePasswordController,
             ),
             const SizedBox(height: 40), // Jarak ke tombol
-
             // Tombol Register
-            CustomButton(
-              text: 'Register',
-              onPressed: _handleRegister,
-            ),
+            CustomButton(text: 'Register', onPressed: _handleRegister),
             const SizedBox(height: 16),
 
             // Teks "Already have an account?"

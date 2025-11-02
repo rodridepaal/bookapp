@@ -17,16 +17,17 @@ class ProfileScreen extends StatelessWidget {
     final authService = AuthService();
     await authService.logout();
     if (!context.mounted) return;
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/welcome',
-      (route) => false,
-    );
+    Navigator.pushNamedAndRemoveUntil(context, '/welcome', (route) => false);
   }
 
-  Future<void> _handleChangePhoto(BuildContext context, UserProvider userProvider) async {
+  Future<void> _handleChangePhoto(
+    BuildContext context,
+    UserProvider userProvider,
+  ) async {
     final picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
 
     if (pickedFile == null) return;
 
@@ -85,16 +86,16 @@ class ProfileScreen extends StatelessWidget {
             Stack(
               children: [
                 CircleAvatar(
-                  key: ValueKey(userProvider.imagePath ?? DateTime.now().toString()),
+                  key: ValueKey(
+                    userProvider.imagePath ?? DateTime.now().toString(),
+                  ),
                   radius: 80,
                   backgroundImage: userProvider.profileImage,
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                  ),
+                  child: Container(padding: const EdgeInsets.all(4)),
                 ),
               ],
             ),
@@ -104,7 +105,10 @@ class ProfileScreen extends StatelessWidget {
               // --- INI YANG DIBENERIN (BAGIAN 1) ---
               child: const Text(
                 'Change Photo', // Teksnya hilang tadi
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               // ------------------------------------
             ),
@@ -122,9 +126,15 @@ class ProfileScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildCounterBox('Read List', readListCount.toString()), // <-- Panggil helper
+                _buildCounterBox(
+                  'Read List',
+                  readListCount.toString(),
+                ), // <-- Panggil helper
                 const SizedBox(width: 24),
-                _buildCounterBox('Finished', finishedCount.toString()), // <-- Panggil helper
+                _buildCounterBox(
+                  'Finished',
+                  finishedCount.toString(),
+                ), // <-- Panggil helper
               ],
             ),
             const SizedBox(height: 32),
@@ -132,10 +142,7 @@ class ProfileScreen extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Keluh Kesah',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 12),
@@ -177,22 +184,14 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Text(
             count,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
         ],
       ),
     );
   }
+
   // ------------------------------------
 }

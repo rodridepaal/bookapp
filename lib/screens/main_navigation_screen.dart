@@ -21,7 +21,6 @@ class PlaceholderScreen extends StatelessWidget {
   }
 }
 
-
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
@@ -30,7 +29,7 @@ class MainNavigationScreen extends StatefulWidget {
 }
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
-  int _currentIndex = 0; 
+  int _currentIndex = 0;
 
   // Daftar halaman
   final List<Widget> _pages = [
@@ -53,10 +52,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          IndexedStack(
-            index: _currentIndex,
-            children: _pages,
-          ),
+          IndexedStack(index: _currentIndex, children: _pages),
 
           // --- PASTIKAN 'onTap: _onTap' ADA DI SINI ---
           CustomBottomNav(

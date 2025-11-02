@@ -15,7 +15,7 @@ class AuthService {
   // jadi fromUtf8('16karakterapaaja') (STATIS)
   static final _iv = enc.IV.fromUtf8('my16digitivkey!!');
   // ------------------------------------
-  
+
   final _encrypter = enc.Encrypter(enc.AES(_key));
 
   String _encryptPassword(String password) {
@@ -30,18 +30,19 @@ class AuthService {
       return false;
     }
     final encryptedPassword = _encryptPassword(password);
-    print('DEBUG (Register): Mau simpan ke Hive -> Key: $email, Value: {name: $name, password: $encryptedPassword}');
+    print(
+      'DEBUG (Register): Mau simpan ke Hive -> Key: $email, Value: {name: $name, password: $encryptedPassword}',
+    );
     try {
-      await _userBox.put(email, {
-        'name': name,
-        'password': encryptedPassword,
-      });
+      await _userBox.put(email, {'name': name, 'password': encryptedPassword});
       final savedData = _userBox.get(email);
-      print('DEBUG (Register): Berhasil simpan! Data di Hive: ${jsonEncode(savedData)}');
+      print(
+        'DEBUG (Register): Berhasil simpan! Data di Hive: ${jsonEncode(savedData)}',
+      );
       return true;
     } catch (e) {
-       print('DEBUG (Register): ERROR saat _userBox.put: $e');
-       return false;
+      print('DEBUG (Register): ERROR saat _userBox.put: $e');
+      return false;
     }
   }
 
@@ -52,17 +53,23 @@ class AuthService {
       return false;
     }
     final userData = _userBox.get(email);
-    print('DEBUG (Login): Data user ditemukan di Hive: ${jsonEncode(userData)}');
+    print(
+      'DEBUG (Login): Data user ditemukan di Hive: ${jsonEncode(userData)}',
+    );
     if (userData == null || !userData.containsKey('password')) {
-       print('DEBUG (Login): Error - Data user tidak valid atau tidak ada password.');
-       return false;
+      print(
+        'DEBUG (Login): Error - Data user tidak valid atau tidak ada password.',
+      );
+      return false;
     }
     final String storedPassword = userData['password'];
     print('DEBUG (Login): Password tersimpan di Hive: $storedPassword');
 
     // Enkripsi password input (sekarang pakai IV statis yang sama)
     final String inputEncryptedPassword = _encryptPassword(password);
-    print('DEBUG (Login): Password input setelah dienkripsi: $inputEncryptedPassword');
+    print(
+      'DEBUG (Login): Password input setelah dienkripsi: $inputEncryptedPassword',
+    );
 
     if (storedPassword == inputEncryptedPassword) {
       print('DEBUG (Login): Password COCOK! Membuat session...');

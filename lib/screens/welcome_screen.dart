@@ -5,7 +5,6 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -23,10 +22,7 @@ class WelcomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(28),
                 ),
                 child: Center(
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    width: 80,
-                  ),
+                  child: Image.asset('assets/images/logo.png', width: 80),
                 ),
               ),
               const SizedBox(height: 32),
@@ -57,9 +53,8 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
-              const Spacer(), // Dorong tombol ke bawah
 
+              const Spacer(), // Dorong tombol ke bawah
               // Tombol Login (Hitam)
               SizedBox(
                 width: double.infinity, // Lebar penuh
