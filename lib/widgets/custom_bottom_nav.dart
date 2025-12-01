@@ -1,10 +1,8 @@
-// lib/widgets/custom_bottom_nav.dart
-
-import 'package:flutter/material.dart';
+ import 'package:flutter/material.dart';
 
 class CustomBottomNav extends StatelessWidget {
-  final int currentIndex; // Halaman mana yang sedang aktif
-  final Function(int) onTap; // Fungsi saat tab di-klik
+  final int currentIndex; 
+  final Function(int) onTap;
 
   const CustomBottomNav({
     super.key,
@@ -21,7 +19,7 @@ class CustomBottomNav extends StatelessWidget {
         height: 70, // Tinggi navigasi
         margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color.fromARGB(255, 4, 22, 217),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(

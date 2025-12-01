@@ -8,22 +8,16 @@ class AuthService {
   final _userBox = Hive.box('userBox');
   final _sessionBox = Hive.box('sessionBox');
 
-  // --- KUNCI STATIS (TETAP SAMA) ---
   static final _key = enc.Key.fromUtf8('my32lengthsupersecretsecretkey!!');
-  // --- IV STATIS (INI PERBAIKANNYA) ---
-  // Ganti fromLength(16) (RANDOM)
-  // jadi fromUtf8('16karakterapaaja') (STATIS)
   static final _iv = enc.IV.fromUtf8('my16digitivkey!!');
-  // ------------------------------------
 
   final _encrypter = enc.Encrypter(enc.AES(_key));
 
+  //AES (algorithm encryption standard)
   String _encryptPassword(String password) {
-    // Selalu pakai _iv yang statis
     return _encrypter.encrypt(password, iv: _iv).base64;
   }
 
-  // --- FUNGSI REGISTER (DENGAN PRINT DEBUG) ---
   Future<bool> register(String name, String email, String password) async {
     if (_userBox.containsKey(email)) {
       print('DEBUG (Register): Gagal - Email $email sudah ada.');
@@ -46,7 +40,6 @@ class AuthService {
     }
   }
 
-  // --- FUNGSI LOGIN (DENGAN PRINT DEBUG) ---
   Future<bool> login(String email, String password) async {
     if (!_userBox.containsKey(email)) {
       print('DEBUG (Login): Gagal - User $email tidak ditemukan.');
@@ -65,7 +58,6 @@ class AuthService {
     final String storedPassword = userData['password'];
     print('DEBUG (Login): Password tersimpan di Hive: $storedPassword');
 
-    // Enkripsi password input (sekarang pakai IV statis yang sama)
     final String inputEncryptedPassword = _encryptPassword(password);
     print(
       'DEBUG (Login): Password input setelah dienkripsi: $inputEncryptedPassword',
@@ -82,7 +74,6 @@ class AuthService {
     }
   }
 
-  // Fungsi Logout (tetap sama)
   Future<void> logout() async {
     await _sessionBox.clear();
     print('User logged out.');

@@ -96,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final bookProvider = Provider.of<BookProvider>(context);
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 246, 246, 0),
       body: Stack(
         children: [
           SafeArea(
@@ -149,10 +150,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(
               'Hi, ${userProvider.userName}!',
               style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black
-              ),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
             ),
           ),
           GestureDetector(
@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               : null,
           filled: true,
-          fillColor: Colors.grey[200],
+          fillColor: const Color.fromARGB(255, 255, 0, 0),
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -311,11 +311,10 @@ class _HomeScreenState extends State<HomeScreen> {
             final book = books[index];
             final String? bookStatus = bookProvider.getBookStatus(book.id);
             return Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 8.0,
-              ),
-              child: _buildBookCard(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+              // Menggunakan _buildBookListItem untuk tampilan daftar (gambar di kiri)
+              child: _buildBookListItem(
                 book,
                 bookStatus,
                 () => _navigateToDetail(book.id),
@@ -403,15 +402,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, progress) =>
                         progress == null
-                        ? child
-                        : Container(
-                            height: 180,
-                            width: 140,
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
+                            ? child
+                            : Container(
+                                height: 180,
+                                width: 140,
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                              ),
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 180,
                       width: 140,
@@ -422,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                                if (isSaved)
+                if (isSaved)
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
@@ -462,98 +462,101 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBookListItem(Book book, String? bookStatus, VoidCallback onTap) {
-    final bool isSaved = bookStatus != null;
+    
+    // Tentukan Ikon dan Warna berdasarkan status
+    IconData iconData;
+    Color iconColor;
 
-    return InkWell(
-      onTap: onTap,
-      child: SizedBox(
-        height: 120,
-        child: Row(
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    book.thumbnailLink,
-                    height: 120,
-                    width: 80,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, progress) =>
-                        progress == null
-                        ? child
-                        : Container(
-                            height: 120,
-                            width: 80,
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
+    if (bookStatus == 'readlist') {
+      iconData = Icons.bookmark;
+      iconColor = Colors.yellow[700]!; // Kuning Emas
+    } else if (bookStatus == 'finished') {
+      iconData = Icons.check_circle;
+      iconColor = Colors.green; // Hijau
+    } else {
+      iconData = Icons.bookmark_border_outlined;
+      iconColor = Colors.grey[600]!; // Abu-abu
+    }
+
+    return Card(
+      color: Colors.white, //kasi warna container
+      elevation: 2, 
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16), // Sudut membulat
+      ),
+      margin: const EdgeInsets.only(bottom: 16), // Jarak antar kartu
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16), // Efek klik mengikuti bentuk kartu
+        child: Padding(
+          padding: const EdgeInsets.all(12.0), // Jarak isi ke pinggir kartu
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  book.thumbnailLink,
+                  height: 100, // Ukuran disesuaikan agar pas di kartu
+                  width: 70,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) => progress == null
+                      ? child
+                      : Container(
+                          height: 100,
+                          width: 70,
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 120,
-                      width: 80,
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Icon(Icons.broken_image, color: Colors.grey),
-                      ),
+                        ),
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 100,
+                    width: 70,
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: Icon(Icons.broken_image, color: Colors.grey),
                     ),
                   ),
                 ),
-                                if (isSaved)
-                  Positioned.fill(
-                    child: Container(
-                      width: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          bookStatus == 'finished'
-                              ? Icons.visibility
-                              : Icons.bookmark_added,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    book.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    book.authors.join(', '),
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(),
-                ],
               ),
-            ),
-            const SizedBox(width: 16),
-            Icon(
-              isSaved ? Icons.check_circle : Icons.bookmark_border_outlined,
-              color: isSaved ? Colors.green : Colors.grey[600],
-            ),
-          ],
+              
+              const SizedBox(width: 16),
+              
+              // --- INFO BUKU ---
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      book.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      book.authors.join(', '),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              
+              // --- IKON STATUS (KANAN) ---
+              const SizedBox(width: 12),
+              Icon(
+                iconData,
+                color: iconColor,
+                size: 28,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,5 +1,3 @@
-// lib/models/book_model.dart
-
 class Book {
   final String id;
   final String title;
@@ -13,13 +11,10 @@ class Book {
   final int pageCount;
   final String language;
 
-  // --- TAMBAHAN BARU UNTUK HARGA ---
-  // Kita pakai nullable double (?) karena harga bisa jadi nggak ada
   final double? listPriceAmount;
   final String? listPriceCurrency;
-  final double? retailPriceAmount; // Harga jual (kalau ada diskon, dll)
+  final double? retailPriceAmount;
   final String? retailPriceCurrency;
-  // ---------------------------------
 
   Book({
     required this.id,
@@ -33,7 +28,6 @@ class Book {
     required this.averageRating,
     required this.pageCount,
     required this.language,
-    // Tambah di constructor
     this.listPriceAmount,
     this.listPriceCurrency,
     this.retailPriceAmount,
@@ -59,7 +53,6 @@ class Book {
     final date = volumeInfo['publishedDate'] ?? '0000';
     final publishedYear = date.length >= 4 ? date.substring(0, 4) : '0000';
 
-    // --- PASTIKAN INI ADA SEBELUM 'return' ---
     final rawDescription = volumeInfo['description'] ?? 'No Description';
 
     return Book(
@@ -68,9 +61,7 @@ class Book {
       authors: authors,
       publisher: volumeInfo['publisher'] ?? 'Unknown Publisher',
       publishedDate: publishedYear,
-      // --- PAKAI rawDescription DI SINI ---
       description: rawDescription.replaceAll(RegExp(r'<[^>]*>'), ''),
-      // ----------------------------------
       thumbnailLink: thumbnail.replaceAll('http:', 'https:'),
       categories: categories,
       averageRating: (volumeInfo['averageRating'] ?? 0.0).toDouble(),

@@ -1,12 +1,10 @@
-// lib/providers/book_provider.dart
-
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:bookapp/models/book_model.dart' as ApiBook; // Pakai alias
 import 'package:bookapp/models/saved_book_model.dart';
 
 class BookProvider extends ChangeNotifier {
-  // Buka box yang sudah kita siapkan
+
   final Box<SavedBook> _savedBooksBox = Hive.box<SavedBook>('savedBooksBox');
 
   // List lokal untuk menampung buku yang sudah diambil dari Hive
@@ -28,7 +26,6 @@ class BookProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  // --- FUNGSI INTERNAL ---
   void _loadSavedBooks() {
     // Ambil semua data dari box dan masukkan ke list
     _savedBooks = _savedBooksBox.values.toList();
@@ -36,10 +33,9 @@ class BookProvider extends ChangeNotifier {
     notifyListeners();
     print(
       'DEBUG (BookProvider): _loadSavedBooks called. Count: ${_savedBooks.length}',
-    ); // Debug
+    );
   }
 
-  // --- FUNGSI UNTUK UI ---
 
   /// Cek status buku (sudah disimpan atau belum)
   String? getBookStatus(String bookId) {
@@ -53,7 +49,6 @@ class BookProvider extends ChangeNotifier {
     }
   }
 
-  // --- INI FUNGSI YANG KEMARIN SEMPAT HILANG/SALAH ---
   /// Cek apakah buku sudah ada di list (berdasarkan ID)
   bool isBookSaved(String bookId) {
     // Cek pakai 'book.bookId' karena _savedBooks isinya SavedBook
@@ -61,9 +56,7 @@ class BookProvider extends ChangeNotifier {
     // print('DEBUG (BookProvider): isBookSaved called for $bookId. Result: $found'); // Debug (opsional)
     return found;
   }
-  // --------------------------------------------------
 
-  /// Fungsi untuk tombol "Read List"
   Future<void> addToReadList(ApiBook.Book book) async {
     final newSavedBook = SavedBook(
       bookId: book.id,
@@ -77,8 +70,6 @@ class BookProvider extends ChangeNotifier {
     // Simpan ke Hive pakai ID buku sebagai KEY
     await _savedBooksBox.put(book.id, newSavedBook);
 
-    // Update list lokal dan beri tahu UI (sudah otomatis via listener)
-    // _loadSavedBooks(); // Tidak perlu panggil manual lagi
     print('DEBUG (BookProvider): Added ${book.title} to Read List.'); // Debug
   }
 

@@ -1,25 +1,13 @@
 // lib/screens/main_navigation_screen.dart
 
-import 'package:bookapp/screens/finished_screen.dart'; // <-- Pastikan import-nya ada
+import 'package:bookapp/screens/chat_screen.dart';
+import 'package:bookapp/screens/finished_screen.dart';
 import 'package:bookapp/screens/home_screen.dart';
 import 'package:bookapp/screens/library_screen.dart';
-import 'package:bookapp/screens/readlist_screen.dart'; // <-- Pastikan import-nya ada
+import 'package:bookapp/screens/readlist_screen.dart';
+import 'package:bookapp/screens/next_day_predictor_screen.dart'; // <--- IMPORT INI
 import 'package:bookapp/widgets/custom_bottom_nav.dart';
 import 'package:flutter/material.dart';
-
-// Halaman placeholder untuk 'Library'
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const PlaceholderScreen({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text('Halaman $title')),
-    );
-  }
-}
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -30,18 +18,42 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
+  
+  // Variabel rahasia buat hitung klik
+  int _secretHomeClickCount = 0;
 
-  // Daftar halaman
   final List<Widget> _pages = [
     const HomeScreen(),
-    ReadListScreen(), // <-- Sudah benar
-    FinishedScreen(), // <-- Sudah benar
-    LibraryScreen(), // Tab 3
+    const ReadListScreen(),
+    const FinishedScreen(),
+    const LibraryScreen(),
   ];
 
-  // --- PASTIKAN FUNGSI INI ADA ---
   void _onTap(int index) {
-    print('Fungsi _onTap terpanggil! Ganti ke index: $index');
+    // --- LOGIKA EASTER EGG (FITUR RAHASIA) ---
+    if (index == 0) {
+      // Jika user klik tombol Home (index 0)
+      _secretHomeClickCount++;
+      print("Secret Click: $_secretHomeClickCount"); // Debug biar keliatan di terminal
+
+      if (_secretHomeClickCount >= 5) {
+        // Reset counter
+        _secretHomeClickCount = 0;
+        
+        // Buka Layar Rahasia
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const NextDayPredictorScreen()),
+        );
+        
+        // Jangan lanjut update state index, biar tetap di home pas balik
+        return; 
+      }
+    } else {
+      // Kalau user klik tombol lain (bukan Home), reset counternya
+      _secretHomeClickCount = 0;
+    }
+
     setState(() {
       _currentIndex = index;
     });
@@ -50,14 +62,28 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100.0, right: 8.0),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChatScreen()),
+            );
+          },
+          backgroundColor: Colors.black,
+          child: const Icon(Icons.support_agent, color: Colors.white),
+        ),
+      ),
       body: Stack(
         children: [
-          IndexedStack(index: _currentIndex, children: _pages),
-
-          // --- PASTIKAN 'onTap: _onTap' ADA DI SINI ---
+          IndexedStack(
+            index: _currentIndex,
+            children: _pages,
+          ),
           CustomBottomNav(
             currentIndex: _currentIndex,
-            onTap: _onTap, // <-- INI YANG PALING PENTING
+            onTap: _onTap,
           ),
         ],
       ),

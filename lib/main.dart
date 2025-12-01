@@ -1,9 +1,5 @@
-// lib/main.dart
-
-// --- FLUTTER & DART ---
 import 'package:flutter/material.dart';
 
-// --- PACKAGES ---
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart'; // Tetap butuh ini untuk init Hive
 import 'package:provider/provider.dart';
@@ -23,7 +19,6 @@ import 'package:bookapp/screens/register_screen.dart';
 import 'package:bookapp/screens/main_navigation_screen.dart';
 
 Future<void> main() async {
-  // --- BAGIAN INISIALISASI ---
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
   await NotificationService.initialize();
@@ -34,7 +29,6 @@ Future<void> main() async {
   await Hive.openBox('sessionBox');
   await Hive.openBox<SavedBook>('savedBooksBox');
 
-  // --- Jalankan Aplikasi (Tetap pakai MultiProvider) ---
   runApp(
     MultiProvider(
       providers: [
@@ -51,12 +45,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- LANGSUNG MaterialApp (TANPA HiveInspector) ---
     return MaterialApp(
       title: 'BookApp',
       debugShowCheckedModeBanner: false,
 
-      // Tema Global
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         brightness: Brightness.light,
@@ -85,6 +77,5 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const MainNavigationScreen(),
       },
     );
-    // ---------------------------------------------------
   }
 }

@@ -3,7 +3,7 @@ import 'package:bookapp/providers/book_provider.dart';
 import 'package:bookapp/services/currency_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart'; // Import intl untuk format angka
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class DetailBookScreen extends StatefulWidget {
@@ -17,12 +17,11 @@ class DetailBookScreen extends StatefulWidget {
 class _DetailBookScreenState extends State<DetailBookScreen> {
   String? currentStatus;
   final CurrencyService _currencyService = CurrencyService();
-  Future<Map<String, double>>? _ratesFuture; // Future untuk hasil API kurs
-  double? _basePrice; // Harga asli dari Google Books
-  String? _baseCurrency; // Mata uang asli dari Google Books
-  bool _canConvert = false; // Flag apakah kita bisa konversi
+  Future<Map<String, double>>? _ratesFuture;
+  double? _basePrice;
+  String? _baseCurrency;
+  bool _canConvert = false;
 
-  // Daftar mata uang target
   final List<String> _targetCurrencies = ['IDR', 'USD', 'EUR', 'JPY'];
 
   @override
@@ -76,7 +75,6 @@ class _DetailBookScreenState extends State<DetailBookScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- GAMBAR BUKU ---
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),

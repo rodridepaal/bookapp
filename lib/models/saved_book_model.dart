@@ -1,10 +1,7 @@
-// lib/models/saved_book_model.dart
-
 import 'package:hive/hive.dart';
+part 'saved_book_model.g.dart';
 
-part 'saved_book_model.g.dart'; // Ini akan tetap merah (untuk sementara)
-
-@HiveType(typeId: 1) // Kasih ID unik
+@HiveType(typeId: 1)
 class SavedBook extends HiveObject {
 
   @HiveField(0)
@@ -20,12 +17,11 @@ class SavedBook extends HiveObject {
   final String title;
 
   @HiveField(4)
-  final String authors; // Kita simpan sbg string gabungan
+  final String authors;
 
   @HiveField(5)
   final String thumbnailLink;
 
-  // --- INI BAGIAN YANG HILANG ---
   SavedBook({
     required this.bookId,
     required this.status,
@@ -34,5 +30,4 @@ class SavedBook extends HiveObject {
     required this.authors,
     required this.thumbnailLink,
   });
-  // --------------------------------
 }

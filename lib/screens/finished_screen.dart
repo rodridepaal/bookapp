@@ -45,7 +45,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
     super.dispose();
   }
 
-  // --- HANYA SATU DEFINISI FUNGSI INI ---
   String _formatTimestamp(DateTime utcTimestamp) {
     final location = tz.getLocation(_timezones[_selectedZone]!);
     final zonedTime = tz.TZDateTime.from(utcTimestamp, location);
@@ -56,7 +55,6 @@ class _FinishedScreenState extends State<FinishedScreen> {
   }
   // ------------------------------------
 
-  // --- HANYA SATU DEFINISI FUNGSI INI ---
   Future<void> _navigateToDetail(String bookId) async {
     if (_isLoadingDetail) return;
     setState(() {
@@ -215,10 +213,8 @@ class _FinishedScreenState extends State<FinishedScreen> {
     );
   }
 
-  // --- TIDAK ADA DEFINISI FUNGSI LAGI DI BAWAH SINI ---
-} // <-- Tutup Class State
+}
 
-// --- WIDGET LIST ITEM (DEFINISI HANYA SATU KALI) ---
 class SavedBookListItemWithTime extends StatelessWidget {
   final SavedBook book;
   final String formattedDateTime;
@@ -295,4 +291,4 @@ class SavedBookListItemWithTime extends StatelessWidget {
       ),
     );
   }
-} // <-- Tutup Class Widget
+}

@@ -1,6 +1,5 @@
-import 'package:bookapp/services/auth_service.dart'; // <-- Sudah benar
-import 'package:bookapp/widgets/custom_button.dart'; // <-- Sudah benar
-import 'package:bookapp/widgets/custom_textfield.dart'; // <-- Sudah benar
+import 'package:bookapp/services/auth_service.dart';
+import 'package:bookapp/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,7 +10,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // --- Controller dan Service (Sudah Benar) ---
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
@@ -39,10 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       bool isSuccess = await _authService.login(email, password);
 
-      // --- PERBAIKAN UNTUK ASYNC GAPS ---
-      // Cek apakah widget masih ada di layar sebelum pakai context
       if (!mounted) return;
-      // ------------------------------------
 
       if (isSuccess) {
         Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
@@ -52,16 +47,13 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      // --- PERBAIKAN UNTUK ASYNC GAPS ---
       if (!mounted) return;
-      // ------------------------------------
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Terjadi error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi error: $e')),
+      );
     }
   }
 
-  // --- INI YANG HILANG: METHOD BUILD ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,34 +73,91 @@ class _LoginScreenState extends State<LoginScreen> {
             // Teks Judul
             const Text(
               "Let's Sign you in.\nWelcome back\nYou've been missed!",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 32),
 
-            // Form
-            CustomTextField(
-              label: 'Email',
-              hint: 'Enter your Email',
+            // ===== EMAIL TEXTFIELD (BIRU) =====
+            TextField(
               controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                hintText: 'Enter your Email',
+                labelStyle: const TextStyle(
+                  color: Color.fromARGB(255, 0, 0, 0),
+                  fontWeight: FontWeight.w500,
+                ),
+                filled: true,
+                fillColor: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.03),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    width: 1.6,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                    color: Colors.blueAccent,
+                    width: 2,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
 
-            CustomTextField(
-              label: 'Password',
-              hint: 'Enter Password',
-              isPassword: true,
+            // ===== PASSWORD TEXTFIELD (MERAH) =====
+            TextField(
               controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                hintText: 'Enter Password',
+                labelStyle: const TextStyle(
+                  color: Color.fromARGB(255, 0, 0, 0),
+                  fontWeight: FontWeight.w500,
+                ),
+                filled: true,
+                fillColor: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.03),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    width: 1.6,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    width: 2,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 40),
 
-            // Tombol Login
+            // BUTTON LOGIN
             CustomButton(
               text: 'Login',
-              onPressed: _handleLogin, // Ini memanggil fungsi di atas
+              onPressed: _handleLogin,
             ),
             const SizedBox(height: 16),
 
-            // Teks "Don't have an account?"
+            // TEXT KE REGISTER
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

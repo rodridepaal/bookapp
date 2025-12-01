@@ -14,10 +14,6 @@
         android:label="bookapp"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="PASTE_API_KEY_KAMU_DI_SINI"/>
 
         <activity
             android:name=".MainActivity"

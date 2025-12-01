@@ -54,10 +54,9 @@ class WelcomeScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
 
-              const Spacer(), // Dorong tombol ke bawah
-              // Tombol Login (Hitam)
+              const Spacer(), 
               SizedBox(
-                width: double.infinity, // Lebar penuh
+                width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
                   onPressed: () {

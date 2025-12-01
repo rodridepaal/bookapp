@@ -6,8 +6,8 @@ import 'package:bookapp/screens/library_map_screen.dart';
 import 'package:bookapp/services/osm_service.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:latlong2/latlong.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({Key? key}) : super(key: key);
@@ -19,10 +19,11 @@ class LibraryScreen extends StatefulWidget {
 class _LibraryScreenState extends State<LibraryScreen> {
   // --- State ---
   String _currentLocationStatus = 'Mencari lokasi...';
-  String? _userAddress; // State buat alamat
+  String? _userAddress;
   final OsmService _osmService = OsmService();
   bool _isLoading = true;
   Position? _userPosition;
+  LatLng? _searchCenter; 
   List<OsmPlace> _libraries = [];
   // -------------
 
@@ -32,98 +33,120 @@ class _LibraryScreenState extends State<LibraryScreen> {
     _fetchNearbyLibraries();
   }
 
-  // --- HANYA SATU DEFINISI FUNGSI INI ---
-  Future<void> _fetchNearbyLibraries() async {
+  Future<void> _fetchNearbyLibraries({double? manualLat, double? manualLng}) async {
     print("DEBUG (Library): Memulai _fetchNearbyLibraries...");
-    // Reset state sebelum fetch baru, cek mounted
-    if (mounted)
+    if (mounted) {
       setState(() {
         _isLoading = true;
         _currentLocationStatus = 'Mencari lokasi...';
-        _userAddress = null;
+        if (manualLat == null) _userAddress = null; 
         _libraries = [];
       });
+    }
 
-    LocationPermission permission;
     try {
-      // 1. Cek Service & Izin Lokasi
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (!mounted) return;
-        setState(() {
-          _currentLocationStatus = 'GPS/Lokasi HP mati';
-          _isLoading = false;
-        });
-        return;
-      }
+      double targetLat;
+      double targetLng;
 
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
+      // KASUS 1: Pakai Lokasi Manual (dari Map)
+      if (manualLat != null && manualLng != null) {
+        targetLat = manualLat;
+        targetLng = manualLng;
+        if (mounted) {
+          setState(() {
+            _currentLocationStatus = 'Lokasi Manual Dipilih';
+            _searchCenter = LatLng(targetLat, targetLng);
+          });
+        }
+      } 
+      // KASUS 2: Pakai GPS (Otomatis)
+      else {
+        // 1. Cek Service & Izin Lokasi
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
           if (!mounted) return;
           setState(() {
-            _currentLocationStatus = 'Izin lokasi ditolak';
+            _currentLocationStatus = 'GPS/Lokasi HP mati';
             _isLoading = false;
           });
           return;
         }
-      }
 
-      // 2. Ambil Posisi
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 15),
-      );
-      if (!mounted) return;
-      setState(() {
-        _userPosition = position;
-      });
-
-      // 3. Geocoding (Ubah koordinat jadi alamat)
-      try {
-        List<Placemark> placemarks = await placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        );
-        if (placemarks.isNotEmpty) {
-          final placemark = placemarks.first;
-          // Rangkai alamat jadi lebih rapi
-          _userAddress = [
-            placemark.street,
-            placemark.subLocality,
-            placemark.locality,
-            placemark.subAdministrativeArea,
-            placemark.administrativeArea,
-          ].whereType<String>().where((part) => part.isNotEmpty).join(', ');
-          if (mounted)
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+          if (permission == LocationPermission.denied ||
+              permission == LocationPermission.deniedForever) {
+            if (!mounted) return;
             setState(() {
-              _currentLocationStatus = 'Lokasi ditemukan!';
+              _currentLocationStatus = 'Izin lokasi ditolak';
+              _isLoading = false;
             });
-        } else {
-          if (mounted)
-            setState(() {
-              _currentLocationStatus = 'Lokasi ditemukan (tanpa alamat detail)';
-            });
+            return;
+          }
         }
-      } catch (geoError) {
-        if (mounted)
-          setState(() {
-            _currentLocationStatus = 'Lokasi ditemukan (gagal dapatkan alamat)';
-          });
+
+        // 2. Ambil Posisi GPS
+        Position position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium,
+            timeLimit: const Duration(seconds: 15));
+        
+        targetLat = position.latitude;
+        targetLng = position.longitude;
+
+        if (!mounted) return;
+        setState(() {
+          _userPosition = position;
+          _searchCenter = LatLng(targetLat, targetLng);
+        });
+
+        // 3. Geocoding
+        try {
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              position.latitude, position.longitude);
+          if (placemarks.isNotEmpty) {
+            final placemark = placemarks.first;
+            _userAddress = [
+              placemark.street,
+              placemark.subLocality,
+              placemark.locality,
+              placemark.subAdministrativeArea,
+              placemark.administrativeArea
+            ].whereType<String>().where((part) => part.isNotEmpty).join(', ');
+            if (mounted) {
+              setState(() {
+                _currentLocationStatus = 'Lokasi ditemukan!';
+              });
+            }
+          }
+        } catch (geoError) {
+          // Ignore
+        }
       }
 
       // 4. Panggil service OSM
       List<OsmPlace> libraries = await _osmService.getNearbyLibraries(
-        position.latitude,
-        position.longitude,
-      );
+          targetLat, targetLng);
+      
+      // --- FITUR BARU: SORTING BY DISTANCE ---
+      // Jika kita punya lokasi user, urutkan perpustakaan dari yang terdekat
+      if (_userPosition != null) {
+        libraries.sort((a, b) {
+          double distA = Geolocator.distanceBetween(
+              _userPosition!.latitude, _userPosition!.longitude, a.latitude, a.longitude);
+          double distB = Geolocator.distanceBetween(
+              _userPosition!.latitude, _userPosition!.longitude, b.latitude, b.longitude);
+          return distA.compareTo(distB); // Urutkan Ascending (Kecil ke Besar)
+        });
+      }
+      // -------------------------------------
+
       if (!mounted) return;
       setState(() {
         _libraries = libraries;
         _isLoading = false;
       });
+
     } on TimeoutException {
       if (!mounted) return;
       setState(() {
@@ -134,39 +157,38 @@ class _LibraryScreenState extends State<LibraryScreen> {
       print("DEBUG (Library): Exception lain: $e");
       if (!mounted) return;
       setState(() {
-        if (_userPosition == null) {
-          _currentLocationStatus = 'Gagal dapatkan lokasi';
-        } else {
-          _currentLocationStatus = 'Gagal dapatkan data perpus';
-        }
+        _currentLocationStatus = 'Terjadi kesalahan';
         _isLoading = false;
       });
     }
   }
-  // ------------------------------------------
 
-  // --- HANYA SATU DEFINISI FUNGSI INI ---
-  void _openMapPage({LatLng? targetLocation}) {
+  void _openMapPage({LatLng? targetLocation}) async {
     if (_userPosition != null) {
-      Navigator.push(
+      final selectedLocation = await Navigator.push<LatLng>(
         context,
         MaterialPageRoute(
           builder: (context) => LibraryMapScreen(
             userPosition: _userPosition!,
             libraries: _libraries,
-            initialTarget: targetLocation,
+            initialTarget: targetLocation ?? _searchCenter, 
           ),
         ),
       );
+
+      if (selectedLocation != null) {
+        _fetchNearbyLibraries(
+          manualLat: selectedLocation.latitude,
+          manualLng: selectedLocation.longitude,
+        );
+      }
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Lokasi belum siap.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lokasi belum siap.')),
+      );
     }
   }
-  // ------------------------------------
 
-  // --- HANYA SATU DEFINISI FUNGSI INI ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,69 +197,50 @@ class _LibraryScreenState extends State<LibraryScreen> {
         automaticallyImplyLeading: false,
         elevation: 1,
         backgroundColor: Colors.white,
-        toolbarHeight: 130, // Tinggikan AppBar buat nampung tombol & alamat
-        titleSpacing: 24.0, // Atur padding title
+        toolbarHeight: 130,
+        titleSpacing: 24.0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Judul Halaman
             const Text(
               'Nearest Library',
               style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 28,
-              ),
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 28),
             ),
             const SizedBox(height: 12),
-            // Baris Tombol
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Tombol Refresh Lokasi
                 TextButton.icon(
-                  onPressed: _fetchNearbyLibraries, // Panggil fetch lagi
-                  icon: Icon(
-                    Icons.my_location,
-                    size: 18,
-                    color: Colors.blue[700],
-                  ),
+                  onPressed: () => _fetchNearbyLibraries(),
+                  icon: Icon(Icons.my_location,
+                      size: 18, color: Colors.blue[700]),
                   label: Text(
-                    'Refresh Lokasi', // Ganti teks
+                    'Reset Lokasi Saya',
                     style: TextStyle(
-                      color: Colors.blue[700],
-                      fontWeight: FontWeight.bold,
-                    ),
+                        color: Colors.blue[700], fontWeight: FontWeight.bold),
                   ),
                   style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 ),
-                // Tombol Buka Peta
                 TextButton.icon(
-                  onPressed: () => _openMapPage(
-                    targetLocation: null,
-                  ), // Buka peta fokus user
-                  icon: Icon(
-                    Icons.map_outlined,
-                    size: 18,
-                    color: Colors.grey[700],
-                  ),
+                  onPressed: () => _openMapPage(targetLocation: null),
+                  icon: Icon(Icons.map_outlined,
+                      size: 18, color: Colors.grey[700]),
                   label: Text(
                     'Buka Map',
                     style: TextStyle(
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.bold,
-                    ),
+                        color: Colors.grey[700], fontWeight: FontWeight.bold),
                   ),
                   style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 ),
               ],
             ),
-            // Tampilkan Alamat atau Status
             Padding(
               padding: const EdgeInsets.only(top: 6.0),
               child: Text(
-                _userAddress ??
-                    _currentLocationStatus, // Tampilkan alamat kalau ada, kalau nggak, statusnya
+                _userAddress ?? _currentLocationStatus,
                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -246,109 +249,98 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ],
         ),
       ),
-      body: _buildBody(), // Panggil helper body
+      body: _buildBody(),
     );
   }
-  // ------------------------------------
 
-  // --- HANYA SATU DEFINISI FUNGSI INI ---
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.black),
-      );
-    }
-    // Tampilkan pesan error spesifik jika gagal
-    if (_currentLocationStatus.contains('Gagal') ||
-        _currentLocationStatus.contains('ditolak') ||
-        _currentLocationStatus.contains('mati')) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Text(_currentLocationStatus, textAlign: TextAlign.center),
-        ),
-      );
-    }
-    // Tampilkan pesan jika tidak ada perpus
-    if (_libraries.isEmpty) {
-      return const Center(
-        child: Text('Tidak ada perpustakaan terdekat ditemukan via OSM.'),
-      );
+          child: CircularProgressIndicator(color: Colors.black));
     }
 
-    // Tampilkan list
+    if (_libraries.isEmpty) {
+      return const Center(
+          child: Text('Tidak ada perpustakaan ditemukan di area ini.'));
+    }
+
     return ListView.builder(
       itemCount: _libraries.length,
       itemBuilder: (context, index) {
         final place = _libraries[index];
-        // InkWell buat item bisa diklik
+
+        // --- HITUNG JARAK UNTUK DISPLAY ---
+        String distanceInfo = '-';
+        if (_userPosition != null) {
+          double distanceInMeters = Geolocator.distanceBetween(
+            _userPosition!.latitude,
+            _userPosition!.longitude,
+            place.latitude,
+            place.longitude,
+          );
+
+          if (distanceInMeters >= 1000) {
+            distanceInfo =
+                '${(distanceInMeters / 1000).toStringAsFixed(1)} km';
+          } else {
+            distanceInfo = '${distanceInMeters.toStringAsFixed(0)} m';
+          }
+        }
+        // --------------------
+
         return InkWell(
           onTap: () {
             _openMapPage(
-              targetLocation: LatLng(place.latitude, place.longitude),
-            );
+                targetLocation: LatLng(place.latitude, place.longitude));
           },
           child: _buildLibraryItem(
             title: place.name,
-            address: place.address,
-          ), // Panggil helper item
+            address: "$distanceInfo dari lokasi Anda",
+          ),
         );
       },
     );
   }
-  // ------------------------------------
 
-  // --- HANYA SATU DEFINISI FUNGSI INI ---
   Widget _buildLibraryItem({required String title, required String address}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-      ),
+          border: Border(bottom: BorderSide(color: Colors.grey[200]!))),
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Container(
-              width: 60,
-              height: 60,
-              color: Colors.blueGrey[100],
-              child: const Icon(
-                Icons.local_library,
-                color: Colors.white,
-                size: 30,
-              ),
-            ), // Icon placeholder
+                width: 60,
+                height: 60,
+                color: Colors.blueGrey[100],
+                child: const Icon(Icons.local_library,
+                    color: Colors.white, size: 30)),
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
+              child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                      fontWeight: FontWeight.bold, fontSize: 16),
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  address,
-                  style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                  overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 4),
+              Text(address,
+                  style: TextStyle(
+                      color: Colors.blue[700],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600),
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
+                  overflow: TextOverflow.ellipsis),
+            ],
+          )),
+          const Icon(Icons.chevron_right, color: Colors.grey),
         ],
       ),
     );
   }
-  // ------------------------------------
-
-  // --- TIDAK ADA DEFINISI FUNGSI LAGI DI BAWAH SINI ---
-} // <-- Tutup Class State
+} 
